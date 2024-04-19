@@ -7,32 +7,26 @@
 
 #define __gm82video_step
     ///
-    var __timer;    
-    __timer=get_timer()
+    var __position,__update;
     
-    if (__timer>__gm82video_lastframe+__gm82video_frametime) {
-        if (__gm82video_lastframe==-1) __gm82video_lastframe=__timer
-        __gm82video_lastframe+=__gm82video_frametime
-        __gm82video_current+=1
-        
-        if (__gm82video_current>=__gm82video_total) {
-            buffer_destroy(__gm82video_buffer)
-            buffer_destroy(__gm82video_framebuffer)
-            sound_stop(__gm82video_sound)
-            sound_delete(__gm82video_soundtrack)
-            file_delete(__gm82video_audiofile)
-            instance_destroy()
-            return 0
+    if (!sound_isplaying(__gm82video_sound)) __position=__gm82video_total
+    else __position=round(min(1,sound_get_pos(__gm82video_sound,unit_unitary))*__gm82video_total)
+    
+    if (__gm82video_current>=__gm82video_total-1) {
+        if (__gm82video_loop) video_reset(id)
+    } else {
+        __update=false
+        while (__position>__gm82video_current && __gm82video_current<__gm82video_total-1) { 
+            __gm82video_current+=1
+            buffer_clear(__gm82video_framebuffer)
+            __len=buffer_read_u32(__gm82video_buffer)
+            __pos=buffer_get_pos(__gm82video_buffer)
+            buffer_copy_part(__gm82video_framebuffer,__gm82video_buffer,__pos,__len)
+            buffer_inflate(__gm82video_framebuffer)
+            buffer_set_pos(__gm82video_buffer,__pos+__len)            
+            __update=true
         }
-        
-        buffer_clear(__gm82video_framebuffer)
-        __len=buffer_read_u32(__gm82video_buffer)
-        __pos=buffer_get_pos(__gm82video_buffer)
-        buffer_copy_part(__gm82video_framebuffer,__gm82video_buffer,__pos,__len)
-        buffer_inflate(__gm82video_framebuffer)
-        buffer_set_pos(__gm82video_buffer,__pos+__len)
-        
-        __gm82video_update_frame()
+        if (__update) __gm82video_update_frame()
     }
 
 
@@ -53,32 +47,33 @@
 
 
 #define video_play
-    ///video_play(filename.rav)
+    ///video_play(filename.rav,[loop])
     //Loads a video and returns a video instance.
+    var __loop;
     
-    if (!file_exists(argument0)) {
-        show_error("error in function video_play: loading video from nonexisting file ("+string(argument0)+")",0)
-        return -1
+    __loop=0
+    if (argument_count>1) __loop=argument[1]
+    
+    if (!file_exists(argument[0])) {
+        show_error("error in function video_play: loading nonexisting file ("+string(argument[0])+")",0)
+        return noone
     }
-    
-    globalvar __gm82video_using_gm82snd;
-    __gm82video_using_gm82snd=variable_global_exists("__gm82snd_checkerrors")
     
     with (instance_create(0,0,__gm82video_object)) {        
         __gm82video_buffer=buffer_create()
         __gm82video_framebuffer=buffer_create()
-        __gm82video_audiofile=temp_directory+"\"+filename_name(argument0)+string(irandom(1000000))+".mp3"
+        var __i; __i=0 do {__gm82video_audiofile=temp_directory+"\"+filename_name(argument[0])+string(__i)+".mp3" __i+=1} until (!file_exists(__gm82video_audiofile))
 
         //load movie data
-        buffer_load(__gm82video_buffer,argument0)
+        buffer_load(__gm82video_buffer,argument[0])
 
         //renex audiovideo v1
         if (buffer_read_string(__gm82video_buffer)!="renex audiovideo v1 ") {
-            show_error("",0)
+            show_error("error in function video_play: file does not appear to be a rav codec blob ("+string(argument[0])+")",0)
             buffer_destroy(__gm82video_buffer)
             buffer_destroy(__gm82video_framebuffer)
             instance_destroy()
-            return -1
+            return noone
         }
 
         //read audio blob
@@ -99,21 +94,35 @@
         __gm82video_height=buffer_read_u16(__gm82video_buffer)
        
         //initialize variables
+        __gm82video_1stframe=buffer_get_pos(__gm82video_buffer)
         __gm82video_surface=-1
-        __gm82video_lastframe=-1
         __gm82video_current=-1
-        __gm82video_frametime=1000000/__gm82video_fps
+        __gm82video_speed=1
+        __gm82video_loop=__loop
+        
+        //play soundtrack
+        __gm82video_sound=sound_play(__gm82video_soundtrack)
         
         //load first frame
         __gm82video_step()
         
-        //play soundtrack
-        __gm82video_sound=sound_play(__gm82video_soundtrack)
-        if (!__gm82video_using_gm82snd) __gm82video_sound=__gm82video_soundtrack
-        
         return id
     }
 
+
+#define video_reset
+    ///video_reset(video)
+    with (argument0) if (object_index==__gm82video_object) {
+        buffer_set_pos(__gm82video_buffer,__gm82video_1stframe)
+        __gm82video_current=-1
+        sound_stop(__gm82video_sound)
+        __gm82video_sound=sound_play(__gm82video_soundtrack)
+        sound_pitch(__gm82video_sound,__gm82video_speed)
+        return 0        
+    }
+    show_error("Invalid video instance passed to function video_reset ("+string(argument0)+")",0)
+    return -1
+    
 
 #define video_get_width
     ///video_get_width(video)
@@ -188,6 +197,22 @@
     return -1
 
 
+#define video_get_texture
+    ///video_get_texture(video)
+    //returns a texture with the current video frame for that video.
+    var __video;
+    
+    __video=argument0
+    
+    with (__video) if (object_index==__gm82video_object) {
+        if (!surface_exists(__gm82video_surface))
+            __gm82video_update_frame()
+        return surface_get_texture(__gm82video_surface)
+    }
+    show_error("Invalid video instance passed to function video_get_texture ("+string(argument0)+")",0)
+    return -1
+
+
 #define video_set_volume
     ///video_set_volume(video,volume)
     with (argument0) if (object_index==__gm82video_object) {
@@ -201,10 +226,6 @@
 #define video_set_pause
     ///video_set_pause(video,paused)
     with (argument0) if (object_index==__gm82video_object) {
-        if (!__gm82video_using_gm82snd) {
-            show_error("trying to pause video, but Game Maker 8.2 Sound extension is not present.",0)
-            return -1
-        }
         __gm82video_playing=!argument1
         if (__gm82video_playing) sound_resume(__gm82video_sound)
         else sound_pause(__gm82video_sound)
@@ -217,16 +238,39 @@
 #define video_set_speed
     ///video_set_speed(video,speed)
     with (argument0) if (object_index==__gm82video_object) {
-        if (!__gm82video_using_gm82snd) {
-            show_error("trying to change video speed, but Game Maker 8.2 Sound extension is not present.",0)
-            return -1
-        }
-        __gm82video_speed=median(0,argument1,5)
+        __gm82video_speed=median(0,argument1,4)
         sound_pitch(__gm82video_sound,__gm82video_speed)
         
         return 1
     }
     show_error("Invalid video instance passed to function video_set_speed ("+string(argument0)+")",0)
+    return -1
+
+
+#define video_isplaying
+    ///video_isplaying(video)
+    with (argument0) if (object_index==__gm82video_object) {
+        if (__gm82video_current>=__gm82video_total && !__gm82video_loop) return 0        
+        return 1
+    }
+    show_error("Invalid video instance passed to function video_isplaying ("+string(argument0)+")",0)
+    return -1
+
+
+#define video_destroy
+    ///video_destroy(video)
+    with (argument0) if (object_index==__gm82video_object) {
+        sound_stop(__gm82video_sound)
+        sound_delete(__gm82video_soundtrack)
+        buffer_destroy(__gm82video_buffer)
+        buffer_destroy(__gm82video_framebuffer)
+        file_delete(__gm82video_audiofile)
+        if (surface_exists(__gm82video_surface)) surface_free(__gm82video_surface)
+        instance_destroy()
+        
+        return 0
+    }
+    show_error("Invalid video instance passed to function video_destroy ("+string(argument0)+")",0)
     return -1
 
 
@@ -262,10 +306,5 @@
     }
     show_error("Invalid video instance passed to function video_draw ("+string(argument0)+")",0)
     return -1
-
-
-#define video_encode
-    ///video_encode(ffmpeg.exe,filename,scaling%)
-    //todo: encode video
 //
 //

@@ -3,7 +3,7 @@
 	"folder": "gm82",
 	"version": "1.0",
 	"author": "renex",
-	"date": "16/04/2024",
+	"date": "19/04/2024",
 	"license": "Free to use, also for commercial games.",
 	"description": "Extension to allow video playback onto surfaces. Requires Core, Network, DirectX9 and optionally Sound for more control.",
 	"helpfile": "",
@@ -11,7 +11,8 @@
 	"dependencies": [
 		"Game Maker 8.2 Core",
 		"Game Maker 8.2 Network",
-		"Game Maker 8.2 DirectX9"
+		"Game Maker 8.2 DirectX9",
+		"Game Maker 8.2 Sound"
 	],
 	"files": [
 		{
@@ -22,41 +23,12 @@
 			"final": "",
 			"functions": [
 				{
-					"name": "__gm82video_init",
+					"name": "video_draw",
 					"extname": "",
 					"calltype": 2,
-					"helpline": "",
-					"hidden": true,
-					"argtypes": null,
-					"returntype": 2
-				},
-				{
-					"name": "__gm82video_step",
-					"extname": "",
-					"calltype": 2,
-					"helpline": "",
-					"hidden": true,
-					"argtypes": null,
-					"returntype": 2
-				},
-				{
-					"name": "__gm82video_update_frame",
-					"extname": "",
-					"calltype": 2,
-					"helpline": "",
-					"hidden": true,
-					"argtypes": null,
-					"returntype": 2
-				},
-				{
-					"name": "video_play",
-					"extname": "",
-					"calltype": 2,
-					"helpline": "video_play(filename.rav)",
+					"helpline": "video_draw(video,x,y,[w,h,[color,alpha]])",
 					"hidden": false,
-					"argtypes": [
-						2
-					],
+					"argtypes": null,
 					"returntype": 2
 				},
 				{
@@ -75,6 +47,17 @@
 					"extname": "",
 					"calltype": 2,
 					"helpline": "video_get_frames(video)",
+					"hidden": false,
+					"argtypes": [
+						2
+					],
+					"returntype": 2
+				},
+				{
+					"name": "video_get_height",
+					"extname": "",
+					"calltype": 2,
+					"helpline": "video_get_height(video)",
 					"hidden": false,
 					"argtypes": [
 						2
@@ -115,15 +98,45 @@
 					"returntype": 2
 				},
 				{
-					"name": "video_set_volume",
+					"name": "video_get_texture",
 					"extname": "",
 					"calltype": 2,
-					"helpline": "video_set_volume(video,volume)",
+					"helpline": "video_get_texture(video)",
 					"hidden": false,
 					"argtypes": [
-						2,
 						2
 					],
+					"returntype": 2
+				},
+				{
+					"name": "video_get_width",
+					"extname": "",
+					"calltype": 2,
+					"helpline": "video_get_width(video)",
+					"hidden": false,
+					"argtypes": [
+						2
+					],
+					"returntype": 2
+				},
+				{
+					"name": "video_isplaying",
+					"extname": "",
+					"calltype": 2,
+					"helpline": "video_isplaying(video)",
+					"hidden": false,
+					"argtypes": [
+						2
+					],
+					"returntype": 2
+				},
+				{
+					"name": "video_play",
+					"extname": "",
+					"calltype": 2,
+					"helpline": "video_play(filename.rav,[loop])",
+					"hidden": false,
+					"argtypes": null,
 					"returntype": 2
 				},
 				{
@@ -151,39 +164,49 @@
 					"returntype": 2
 				},
 				{
-					"name": "video_draw",
+					"name": "video_set_volume",
 					"extname": "",
 					"calltype": 2,
-					"helpline": "video_draw(video,x,y,[w,h,[color,alpha]])",
-					"hidden": false,
-					"argtypes": null,
-					"returntype": 2
-				},
-				{
-					"name": "video_encode",
-					"extname": "",
-					"calltype": 2,
-					"helpline": "video_encode(ffmpeg.exe,filename,scaling%)",
-					"hidden": true,
-					"argtypes": null,
-					"returntype": 2
-				},
-				{
-					"name": "video_get_width",
-					"extname": "",
-					"calltype": 2,
-					"helpline": "video_get_width(video)",
+					"helpline": "video_set_volume(video,volume)",
 					"hidden": false,
 					"argtypes": [
+						2,
 						2
 					],
 					"returntype": 2
 				},
 				{
-					"name": "video_get_height",
+					"name": "__gm82video_init",
 					"extname": "",
 					"calltype": 2,
-					"helpline": "video_get_height(video)",
+					"helpline": "",
+					"hidden": true,
+					"argtypes": null,
+					"returntype": 2
+				},
+				{
+					"name": "__gm82video_step",
+					"extname": "",
+					"calltype": 2,
+					"helpline": "",
+					"hidden": true,
+					"argtypes": null,
+					"returntype": 2
+				},
+				{
+					"name": "__gm82video_update_frame",
+					"extname": "",
+					"calltype": 2,
+					"helpline": "",
+					"hidden": true,
+					"argtypes": null,
+					"returntype": 2
+				},
+				{
+					"name": "video_reset",
+					"extname": "",
+					"calltype": 2,
+					"helpline": "video_reset(video)",
 					"hidden": false,
 					"argtypes": [
 						2
