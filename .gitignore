@@ -1,3 +1,8 @@
 *.gex
 gm82gex.py
 *.dll
+*.rav
+*.exe
+encoder/ffmpeg/ffmpeg.exe
+encoder/ffmpeg/getfps.bat
+encoder/ffmpeg/frames
