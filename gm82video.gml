@@ -9,24 +9,26 @@
     ///
     var __position,__update;
     
-    if (!sound_isplaying(__gm82video_sound)) __position=__gm82video_total
-    else __position=round(min(1,sound_get_pos(__gm82video_sound,unit_unitary))*__gm82video_total)
-    
-    if (__gm82video_current>=__gm82video_total-1) {
-        if (__gm82video_loop) video_reset(id)
-    } else {
-        __update=false
-        while (__position>__gm82video_current && __gm82video_current<__gm82video_total-1) { 
-            __gm82video_current+=1
-            buffer_clear(__gm82video_framebuffer)
-            __len=buffer_read_u32(__gm82video_buffer)
-            __pos=buffer_get_pos(__gm82video_buffer)
-            buffer_copy_part(__gm82video_framebuffer,__gm82video_buffer,__pos,__len)
-            buffer_inflate(__gm82video_framebuffer)
-            buffer_set_pos(__gm82video_buffer,__pos+__len)            
-            __update=true
+    if (__gm82video_playing) {    
+        if (!sound_isplaying(__gm82video_sound)) __position=__gm82video_total
+        else __position=round(min(1,sound_get_pos(__gm82video_sound,unit_unitary))*__gm82video_total)
+        
+        if (__gm82video_current>=__gm82video_total-1) {
+            if (__gm82video_loop) video_reset(id)
+        } else {
+            __update=false
+            while (__position>__gm82video_current && __gm82video_current<__gm82video_total-1) { 
+                __gm82video_current+=1
+                buffer_clear(__gm82video_framebuffer)
+                __len=buffer_read_u32(__gm82video_buffer)
+                __pos=buffer_get_pos(__gm82video_buffer)
+                buffer_copy_part(__gm82video_framebuffer,__gm82video_buffer,__pos,__len)
+                buffer_inflate(__gm82video_framebuffer)
+                buffer_set_pos(__gm82video_buffer,__pos+__len)            
+                __update=true
+            }
+            if (__update) __gm82video_update_frame()
         }
-        if (__update) __gm82video_update_frame()
     }
 
 
@@ -112,6 +114,7 @@
 
 #define video_reset
     ///video_reset(video)
+    //Resets the video to play from the beginning.
     with (argument0) if (object_index==__gm82video_object) {
         buffer_set_pos(__gm82video_buffer,__gm82video_1stframe)
         __gm82video_current=-1
@@ -126,6 +129,7 @@
 
 #define video_get_width
     ///video_get_width(video)
+    //Returns the width of the video in pixels.
     with (argument0) if (object_index==__gm82video_object) {
         return __gm82video_width
     }
@@ -135,6 +139,7 @@
 
 #define video_get_height
     ///video_get_height(video)
+    //Returns the height of the video in pixels.
     with (argument0) if (object_index==__gm82video_object) {
         return __gm82video_height
     }
@@ -144,6 +149,7 @@
 
 #define video_get_fps
     ///video_get_fps(video)
+    //Returns the video's frames per second.
     with (argument0) if (object_index==__gm82video_object) {
         return __gm82video_fps
     }
@@ -153,7 +159,7 @@
 
 #define video_get_frames
     ///video_get_frames(video)
-    //returns the length of the video in frames.
+    //returns the total number of frames in the video.
     with (argument0) if (object_index==__gm82video_object) {
         return __gm82video_total
     }
@@ -173,7 +179,7 @@
 
 #define video_get_progress
     ///video_get_progress(video)
-    //returns the play percentage for the video.
+    //returns the play progress of the video from 0 to 1.
     with (argument0) if (object_index==__gm82video_object) {
         return __gm82video_current/__gm82video_total
     }
@@ -183,12 +189,8 @@
 
 #define video_get_surface
     ///video_get_surface(video)
-    //returns a surface with the current video frame for that video.
-    var __video;
-    
-    __video=argument0
-    
-    with (__video) if (object_index==__gm82video_object) {
+    //returns a surface with the current video frame for the video.
+    with (argument0) if (object_index==__gm82video_object) {
         if (!surface_exists(__gm82video_surface))
             __gm82video_update_frame()
         return __gm82video_surface
@@ -199,12 +201,8 @@
 
 #define video_get_texture
     ///video_get_texture(video)
-    //returns a texture with the current video frame for that video.
-    var __video;
-    
-    __video=argument0
-    
-    with (__video) if (object_index==__gm82video_object) {
+    //returns a texture with the current video frame for the video.
+    with (argument0) if (object_index==__gm82video_object) {
         if (!surface_exists(__gm82video_surface))
             __gm82video_update_frame()
         return surface_get_texture(__gm82video_surface)
@@ -215,6 +213,7 @@
 
 #define video_set_volume
     ///video_set_volume(video,volume)
+    //Sets the audio volume for the video.
     with (argument0) if (object_index==__gm82video_object) {
         sound_volume(__gm82video_sound,argument1)
         return 1
@@ -225,6 +224,7 @@
 
 #define video_set_pause
     ///video_set_pause(video,paused)
+    //Pauses or unpauses video playback.
     with (argument0) if (object_index==__gm82video_object) {
         __gm82video_playing=!argument1
         if (__gm82video_playing) sound_resume(__gm82video_sound)
@@ -237,6 +237,7 @@
 
 #define video_set_speed
     ///video_set_speed(video,speed)
+    //Sets video playback speed from 0 to 4x.
     with (argument0) if (object_index==__gm82video_object) {
         __gm82video_speed=median(0,argument1,4)
         sound_pitch(__gm82video_sound,__gm82video_speed)
@@ -249,6 +250,7 @@
 
 #define video_isplaying
     ///video_isplaying(video)
+    //Returns whether a non-looped video is still not done playing.
     with (argument0) if (object_index==__gm82video_object) {
         if (__gm82video_current>=__gm82video_total && !__gm82video_loop) return 0        
         return 1
@@ -259,6 +261,7 @@
 
 #define video_destroy
     ///video_destroy(video)
+    //Destroys a video and frees all associated memory.
     with (argument0) if (object_index==__gm82video_object) {
         sound_stop(__gm82video_sound)
         sound_delete(__gm82video_soundtrack)
@@ -276,7 +279,7 @@
 
 #define video_draw
     ///video_draw(video,x,y,[w,h,[color,alpha]])
-    //Shortcut for drawing the video.
+    //Simple function for drawing the video to a rectangle.
     var __w,__h,__c,__a;
     
     with (argument[0]) if (object_index==__gm82video_object) {
