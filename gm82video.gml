@@ -7,7 +7,7 @@
 
 #define __gm82video_step
     ///
-    var __position,__update;
+    var __position,__update,__len,__pos,__key;
     
     if (__gm82video_playing) {    
         if (!sound_isplaying(__gm82video_sound)) __position=__gm82video_total
@@ -20,6 +20,8 @@
             while (__position>__gm82video_current && __gm82video_current<__gm82video_total-1) { 
                 __gm82video_current+=1
                 buffer_clear(__gm82video_framebuffer)
+                
+                //unpack one frame
                 __len=buffer_read_u32(__gm82video_buffer)
                 __pos=buffer_get_pos(__gm82video_buffer)
                 buffer_copy_part(__gm82video_framebuffer,__gm82video_buffer,__pos,__len)
@@ -38,6 +40,8 @@
     
     if (!surface_exists(__gm82video_surface))
         __gm82video_surface=surface_create(__gm82video_width,__gm82video_height)
+    if (!surface_exists(__gm82video_scratch))
+        __gm82video_scratch=surface_create(__gm82video_width,__gm82video_height)
     __size=__gm82video_width*__gm82video_height*4
     __cur=buffer_get_size(__gm82video_framebuffer)
     if (__cur!=__size) {
@@ -45,11 +49,14 @@
         return -1
     }
     
-    buffer_set_surface(__gm82video_framebuffer,__gm82video_surface)
+    buffer_set_surface(__gm82video_framebuffer,__gm82video_scratch)
+    surface_set_target(__gm82video_surface)
+    draw_surface(__gm82video_scratch,0,0)
+    surface_reset_target()
 
 
 #define video_play
-    ///video_play(filename.rav,[loop])
+    ///video_play(filename.rv2,[loop])
     //Loads a video and returns a video instance.
     var __loop;
     
@@ -70,7 +77,7 @@
         buffer_load(__gm82video_buffer,argument[0])
 
         //renex audiovideo v1
-        if (buffer_read_string(__gm82video_buffer)!="renex audiovideo v1 ") {
+        if (buffer_read_string(__gm82video_buffer)!="renex audiovideo v2") {
             show_error("error in function video_play: file does not appear to be a rav codec blob ("+string(argument[0])+")",0)
             buffer_destroy(__gm82video_buffer)
             buffer_destroy(__gm82video_framebuffer)
@@ -98,8 +105,10 @@
         //initialize variables
         __gm82video_1stframe=buffer_get_pos(__gm82video_buffer)
         __gm82video_surface=-1
+        __gm82video_scratch=-1
         __gm82video_current=-1
         __gm82video_speed=1
+        __gm82video_playing=1
         __gm82video_loop=__loop
         
         //play soundtrack
@@ -121,6 +130,7 @@
         sound_stop(__gm82video_sound)
         __gm82video_sound=sound_play(__gm82video_soundtrack)
         sound_pitch(__gm82video_sound,__gm82video_speed)
+        __gm82video_playing=1
         return 0        
     }
     show_error("Invalid video instance passed to function video_reset ("+string(argument0)+")",0)

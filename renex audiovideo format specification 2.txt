@@ -1,0 +1,22 @@
+string "renex audiovideo v2"
+
+u32 length {
+    mp3
+}
+
+float fps
+u32 frame count
+u16 width
+u16 height
+
+frame count [
+    u32 length {
+        deflate {
+            surface
+        }
+    }    
+]
+
+keyframe count [
+    u32 address
+]

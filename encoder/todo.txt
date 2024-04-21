@@ -1,0 +1,1 @@
+the black squares are happening because of things like crossfades and shit. what i need to do is re-render the video constantly while encoding and check that against the raw frames instead, and use that as the delta texture. this will make sure that the difference never exceeds the delta and will also make the need for keyframes obsolete. v3?
