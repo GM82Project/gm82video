@@ -3,6 +3,7 @@
     object_event_add(__gm82video_object,ev_step,ev_step_begin,"
         __gm82video_step()
     ")
+    object_set_persistent(__gm82video_object,true)
 
 
 #define __gm82video_step
