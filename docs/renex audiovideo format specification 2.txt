@@ -1,6 +1,6 @@
 string "renex audiovideo v2"
 
-u32 length {
+u32 length or 0 {
     mp3
 }
 
