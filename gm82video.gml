@@ -7,29 +7,41 @@
 
 #define __gm82video_step
     ///
-    var __position,__update,__len,__pos,__key;
+    var __position,__update,__len,__pos,__key,__timer;
     
     if (__gm82video_playing) {    
-        if (!sound_isplaying(__gm82video_sound)) __position=__gm82video_total
-        else __position=round(min(1,sound_get_pos(__gm82video_sound,unit_unitary))*__gm82video_total)
+        if (__gm82video_soundtrack=="") {
+            //alternate timing
+            __position=__gm82video_current
+            __timer=get_timer()
+            if (__timer>__gm82video_lastframe+__gm82video_frametime/__gm82video_speed || __gm82video_current==-1) {
+                __position=__gm82video_current+1
+                __gm82video_lastframe=__timer
+            }
+        } else {
+            //normal timing
+            if (!sound_isplaying(__gm82video_sound)) {
+                __position=0
+                __gm82video_playing=false
+            } else __position=round(min(1,sound_get_pos(__gm82video_sound,unit_unitary))*__gm82video_total)
+        }        
+        
+        while (__position>__gm82video_current && __gm82video_current<__gm82video_total-1) { 
+            __gm82video_current+=1
+            buffer_clear(__gm82video_framebuffer)
+            
+            //unpack one frame
+            __len=buffer_read_u32(__gm82video_buffer)
+            __pos=buffer_get_pos(__gm82video_buffer)
+            buffer_copy_part(__gm82video_framebuffer,__gm82video_buffer,__pos,__len)
+            buffer_inflate(__gm82video_framebuffer)
+            buffer_set_pos(__gm82video_buffer,__pos+__len)            
+            __gm82video_update_frame()
+        }
         
         if (__gm82video_current>=__gm82video_total-1) {
             if (__gm82video_loop) video_reset(id)
-        } else {
-            __update=false
-            while (__position>__gm82video_current && __gm82video_current<__gm82video_total-1) { 
-                __gm82video_current+=1
-                buffer_clear(__gm82video_framebuffer)
-                
-                //unpack one frame
-                __len=buffer_read_u32(__gm82video_buffer)
-                __pos=buffer_get_pos(__gm82video_buffer)
-                buffer_copy_part(__gm82video_framebuffer,__gm82video_buffer,__pos,__len)
-                buffer_inflate(__gm82video_framebuffer)
-                buffer_set_pos(__gm82video_buffer,__pos+__len)            
-                __update=true
-            }
-            if (__update) __gm82video_update_frame()
+            else __gm82video_playing=false
         }
     }
 
@@ -87,12 +99,17 @@
 
         //read audio blob
         __len=buffer_read_u32(__gm82video_buffer)
-        __pos=buffer_get_pos(__gm82video_buffer)
-        buffer_copy_part(__gm82video_framebuffer,__gm82video_buffer,__pos,__len)
-        buffer_set_pos(__gm82video_buffer,__pos+__len)
-        buffer_save(__gm82video_framebuffer,__gm82video_audiofile)
-        __gm82video_soundtrack=sound_add(__gm82video_audiofile,3,1)
-        buffer_clear(__gm82video_framebuffer)
+        
+        if (__len==0) {
+            __gm82video_soundtrack=""
+        } else {
+            __pos=buffer_get_pos(__gm82video_buffer)
+            buffer_copy_part(__gm82video_framebuffer,__gm82video_buffer,__pos,__len)
+            buffer_set_pos(__gm82video_buffer,__pos+__len)
+            buffer_save(__gm82video_framebuffer,__gm82video_audiofile)
+            __gm82video_soundtrack=sound_add(__gm82video_audiofile,3,1)
+            buffer_clear(__gm82video_framebuffer)
+        }
 
         //read movie header
         __gm82video_fps=buffer_read_float(__gm82video_buffer)
@@ -112,7 +129,11 @@
         __gm82video_loop=__loop
         
         //play soundtrack
-        __gm82video_sound=sound_play(__gm82video_soundtrack)
+        if (__gm82video_soundtrack!="")
+            __gm82video_sound=sound_play(__gm82video_soundtrack)
+        else
+            __gm82video_lastframe=get_timer()
+            __gm82video_frametime=1000000/__gm82video_fps
         
         //load first frame
         __gm82video_step()
@@ -127,9 +148,11 @@
     with (argument0) if (object_index==__gm82video_object) {
         buffer_set_pos(__gm82video_buffer,__gm82video_1stframe)
         __gm82video_current=-1
-        sound_stop(__gm82video_sound)
-        __gm82video_sound=sound_play(__gm82video_soundtrack)
-        sound_pitch(__gm82video_sound,__gm82video_speed)
+        if (__gm82video_soundtrack!="") {
+            sound_stop(__gm82video_sound)
+            __gm82video_sound=sound_play(__gm82video_soundtrack)
+            sound_pitch(__gm82video_sound,__gm82video_speed)
+        }
         __gm82video_playing=1
         return 0        
     }
@@ -225,7 +248,7 @@
     ///video_set_volume(video,volume)
     //Sets the audio volume for the video.
     with (argument0) if (object_index==__gm82video_object) {
-        sound_volume(__gm82video_sound,argument1)
+        if (__gm82video_soundtrack!="") sound_volume(__gm82video_sound,argument1)
         return 1
     }
     show_error("Invalid video instance passed to function video_set_volume ("+string(argument0)+")",0)
@@ -237,8 +260,10 @@
     //Pauses or unpauses video playback.
     with (argument0) if (object_index==__gm82video_object) {
         __gm82video_playing=!argument1
-        if (__gm82video_playing) sound_resume(__gm82video_sound)
-        else sound_pause(__gm82video_sound)
+        if (__gm82video_soundtrack!="") {
+            if (__gm82video_playing) sound_resume(__gm82video_sound)
+            else sound_pause(__gm82video_sound)
+        }
         return 1
     }
     show_error("Invalid video instance passed to function video_set_pause ("+string(argument0)+")",0)
@@ -250,7 +275,7 @@
     //Sets video playback speed from 0 to 4x.
     with (argument0) if (object_index==__gm82video_object) {
         __gm82video_speed=median(0,argument1,4)
-        sound_pitch(__gm82video_sound,__gm82video_speed)
+        if (__gm82video_soundtrack!="") sound_pitch(__gm82video_sound,__gm82video_speed)
         
         return 1
     }
@@ -273,8 +298,10 @@
     ///video_destroy(video)
     //Destroys a video and frees all associated memory.
     with (argument0) if (object_index==__gm82video_object) {
-        sound_stop(__gm82video_sound)
-        sound_delete(__gm82video_soundtrack)
+        if (__gm82video_soundtrack!="") {
+            sound_stop(__gm82video_sound)
+            sound_delete(__gm82video_soundtrack)
+        }
         buffer_destroy(__gm82video_buffer)
         buffer_destroy(__gm82video_framebuffer)
         file_delete(__gm82video_audiofile)
