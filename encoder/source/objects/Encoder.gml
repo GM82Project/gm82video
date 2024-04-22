@@ -13,6 +13,7 @@ file_find_close()
 
 output=""
 encoding=false
+encoded=false
 #define Step_0
 /*"/*'/**//* YYD ACTION
 lib_id=1
