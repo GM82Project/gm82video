@@ -194,7 +194,7 @@
     ///video_get_frames(video)
     //returns the total number of frames in the video.
     with (argument0) if (object_index==__gm82video_object) {
-        return __gm82video_total
+        return __gm82video_total-1
     }
     show_error("Invalid video instance passed to function video_get_frames ("+string(argument0)+")",0)
     return -1
@@ -204,7 +204,7 @@
     ///video_get_length(video)
     //returns the length of the video in seconds.
     with (argument0) if (object_index==__gm82video_object) {
-        return __gm82video_total/__gm82video_fps
+        return (__gm82video_total-1)/__gm82video_fps
     }
     show_error("Invalid video instance passed to function video_get_length ("+string(argument0)+")",0)
     return -1
@@ -214,7 +214,7 @@
     ///video_get_progress(video)
     //returns the play progress of the video from 0 to 1.
     with (argument0) if (object_index==__gm82video_object) {
-        return __gm82video_current/__gm82video_total
+        return max(0,__gm82video_current)/(__gm82video_total-1)
     }
     show_error("Invalid video instance passed to function video_get_progress ("+string(argument0)+")",0)
     return -1
@@ -287,8 +287,7 @@
     ///video_isplaying(video)
     //Returns whether a non-looped video is still not done playing.
     with (argument0) if (object_index==__gm82video_object) {
-        if (__gm82video_current>=__gm82video_total && !__gm82video_loop) return 0        
-        return 1
+        return __gm82video_playing
     }
     show_error("Invalid video instance passed to function video_isplaying ("+string(argument0)+")",0)
     return -1
