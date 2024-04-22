@@ -47,9 +47,8 @@ if (!file_exists(logf)) {
 str=file_text_read_all(logf,"")
 file_delete(logf)
 
-if (!string_pos("Input #0, ",str))
-or (string_pos("Duration: N/A",str)) {
-    ffmpeg_error("##Duration seems to be unavailable.##",str)
+if (!string_pos("Input #0, ",str)) {
+    ffmpeg_error("",str)
     exit
 }
 
@@ -64,6 +63,10 @@ if (!p2) {
 }
 p1=p2 do {p1-=1} until (string_char_at(str,p1)==" ")
 videofps=real(string_copy(str,p1,p2-p1))
+if (videofps<=0) {
+    ffmpeg_error("##Detected fps is zero or negative: "+string(videofps)+"##",str)
+    exit
+}
 
 //get dimensions
 w=0
@@ -92,49 +95,58 @@ repeat (string_token_start(str,", ")) {
         break
     }
 }
-
-//get duration
-p1=string_pos("Duration: ",str)+10
-if (!p1) {
-    ffmpeg_error("##Cannot find duration information.##",str)
-    exit
-}
-p2=p1 do {p2+=1} until (string_char_at(str,p2)==",")
-string_token_start(string_copy(str,p1,p2-p1),":")
-hour=real(string_token_next())
-minute=real(string_token_next())
-second=real(string_token_next())
-duration=hour*3600+minute*60+second
-
-//sanity checks
-if (videofps<=0) {
-    ffmpeg_error("##Detected fps is zero or negative: "+string(videofps)+"##",str)
-    exit
-}
 if (w<5 || h<5) {
     ffmpeg_error("##Detected size is too small: "+string(w)+"x"+string(h)+"##",str)
     exit
 }
-if (duration<0.05) {
-    ffmpeg_error("##Detected duration is too short: "+string(duration)+"##",str)
-    exit
-}
 
-//check disk space
-pngfactor=0.5 //fuck it. we ball
-space=duration*videofps*w*h*4*pngfactor
-free=disk_free()
-if (free<space*pngfactor) if (!show_question(
-    "The encoding operation will take approximately "
-    +string(space/1024/1024)
-    +" MB on the "
-    +filename_drive(working_directory)
-    +" drive, but only "
-    +string(free/1024/1024)
-    +" MB is available.##Would you still like to try regardless?"
-)) {
-    status.str="Operation cancelled."
-    exit
+//get duration
+if (string_pos("Duration: N/A",str)) {
+    duration=0
+    free=disk_free()
+    if (free<500*1024*1024) if (!show_question(
+        "The encoding operation will take an unknown amount of space to run, but it looks like the "
+        +filename_drive(working_directory)
+        +" drive only has about "
+        +string(free/1024/1024)
+        +" MB available.##Would you still like to try regardless?"
+    )) {
+        status.str="Operation cancelled."
+        exit
+    }
+} else {
+    p1=string_pos("Duration: ",str)+10
+    if (!p1) {
+        ffmpeg_error("##Cannot find duration information.##",str)
+        exit
+    }
+    p2=p1 do {p2+=1} until (string_char_at(str,p2)==",")
+    string_token_start(string_copy(str,p1,p2-p1),":")
+    hour=real(string_token_next())
+    minute=real(string_token_next())
+    second=real(string_token_next())
+    duration=hour*3600+minute*60+second
+
+    if (duration<0.05) {
+        ffmpeg_error("##Detected duration is too short: "+string(duration)+"##",str)
+        exit
+    }
+    //check disk space
+    pngfactor=0.5 //fuck it. we ball
+    space=duration*videofps*w*h*4*pngfactor
+    free=disk_free()
+    if (free<space*pngfactor) if (!show_question(
+        "The encoding operation will take approximately "
+        +string(space/1024/1024)
+        +" MB on the "
+        +filename_drive(working_directory)
+        +" drive, but only "
+        +string(free/1024/1024)
+        +" MB is available.##Would you still like to try regardless?"
+    )) {
+        status.str="Operation cancelled."
+        exit
+    }
 }
 
 //extract frames and audio
