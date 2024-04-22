@@ -1,0 +1,11 @@
+color=4210752
+new_window=0
+caption=Help
+left=-1
+top=-1
+width=800
+height=600
+border=1
+resizable=1
+window_on_top=0
+freeze_game=0

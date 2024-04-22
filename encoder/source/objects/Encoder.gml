@@ -1,0 +1,29 @@
+#define Create_0
+/*"/*'/**//* YYD ACTION
+lib_id=1
+action_id=603
+applies_to=self
+*/
+draw_set_font(Font)
+global.encodeshader=sh_delta()
+
+file_drag_enable(1)
+if (file_find_first("*.gm82",0)!="") set_working_directory(directory_previous(working_directory))
+file_find_close()
+
+output=""
+encoding=false
+#define Step_0
+/*"/*'/**//* YYD ACTION
+lib_id=1
+action_id=603
+applies_to=self
+*/
+if (file_drag_count()) {
+    fn=file_drag_name(0)
+
+    File.name=fn
+    with (Previewer) if (vid) {video_destroy(vid) vid=noone}
+
+    file_drag_clear()
+}

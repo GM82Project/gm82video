@@ -8,3 +8,4 @@ gm82gex.py
 encoder/ffmpeg/ffmpeg.exe
 encoder/ffmpeg/getfps.bat
 encoder/ffmpeg/frames
+cache

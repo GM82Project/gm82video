@@ -1,0 +1,14 @@
++encoder
+	|Encoder
+	|Text
+	|File
+	|Scaling
+	|Abitrate
+	|Delta
+	|Keyframe
+	|Preset
+	|Encode
+	|Play
+	|Previewer
+	|Rectangle
+	|Help
