@@ -5,7 +5,7 @@ action_id=603
 applies_to=self
 */
 grab=0
-keyframe=15
+keyframe=20
 #define Step_0
 /*"/*'/**//* YYD ACTION
 lib_id=1
@@ -26,7 +26,7 @@ lib_id=1
 action_id=603
 applies_to=self
 */
-keyframe=15
+keyframe=20
 #define Mouse_56
 /*"/*'/**//* YYD ACTION
 lib_id=1

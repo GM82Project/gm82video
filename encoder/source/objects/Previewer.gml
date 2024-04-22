@@ -17,20 +17,13 @@ applies_to=self
 */
 if (vid) label.str=str+string_format(video_get_length(vid)*video_get_progress(vid),4,2)+"/"+string(video_get_length(vid))+" - speed: "+string(spd)
 else label.str="Encoding preview"
-#define Mouse_0
+#define Keyboard_32
 /*"/*'/**//* YYD ACTION
 lib_id=1
 action_id=603
 applies_to=self
 */
 if (vid) if (!video_isplaying(vid)) video_reset(vid)
-#define Mouse_4
-/*"/*'/**//* YYD ACTION
-lib_id=1
-action_id=603
-applies_to=self
-*/
-if (vid) video_reset(vid)
 #define Mouse_60
 /*"/*'/**//* YYD ACTION
 lib_id=1
@@ -83,3 +76,17 @@ if (Encoder.encoding) {
     video_draw(vid,x+offx,y+offy,w*scale,h*scale)
     texture_set_interpolation(0)
 }
+#define KeyPress_27
+/*"/*'/**//* YYD ACTION
+lib_id=1
+action_id=603
+applies_to=self
+*/
+if (vid) video_set_pause(vid,1)
+#define KeyPress_32
+/*"/*'/**//* YYD ACTION
+lib_id=1
+action_id=603
+applies_to=self
+*/
+if (vid) video_reset(vid)

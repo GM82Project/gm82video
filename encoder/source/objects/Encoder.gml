@@ -27,3 +27,25 @@ if (file_drag_count()) {
 
     file_drag_clear()
 }
+#define Other_2
+/*"/*'/**//* YYD ACTION
+lib_id=1
+action_id=603
+applies_to=self
+*/
+load_ini()
+
+set_application_title("Video Encoder")
+#define Other_3
+/*"/*'/**//* YYD ACTION
+lib_id=1
+action_id=603
+applies_to=self
+*/
+save_ini()
+#define Other_30
+/*"/*'/**//* YYD ACTION
+lib_id=1
+action_id=332
+invert=0
+*/

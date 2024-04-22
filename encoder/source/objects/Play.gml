@@ -18,7 +18,7 @@ lib_id=1
 action_id=603
 applies_to=self
 */
-if (sel && Encoder.output!="") if (file_exists(Encoder.output)) {
+if (sel && Encoder.encoded) if (file_exists(Encoder.output)) {
     with (Previewer) {
         if (vid) video_reset(vid)
         else {
@@ -42,6 +42,6 @@ action_id=603
 applies_to=self
 */
 draw_self()
-if (Encoder.output=="") draw_set_color($808080)
+if (!Encoder.encoded) draw_set_color($808080)
 draw_text(x,y,"Test")
 draw_set_color($ffffff)

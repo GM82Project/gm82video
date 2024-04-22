@@ -1,2 +1,5 @@
+|load_ini
+|save_ini
 |encode
 |sh_delta
+|ffmpeg_error

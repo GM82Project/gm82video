@@ -3,3 +3,6 @@
 encode
 
 sh_delta
+load_ini
+save_ini
+ffmpeg_error

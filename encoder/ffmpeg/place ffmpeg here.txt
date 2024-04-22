@@ -1,2 +1,0 @@
-place ffmpeg.exe in this folder. you can find windows binaries easily online.
-they're not included with this tool because they are in excess of 120mb each.

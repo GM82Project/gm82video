@@ -5,6 +5,7 @@ gm82gex.py
 *.rv2
 *.exe
 *.mp4
+*.ini
 encoder/ffmpeg/ffmpeg.exe
 encoder/ffmpeg/getfps.bat
 encoder/ffmpeg/frames

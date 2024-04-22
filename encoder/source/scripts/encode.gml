@@ -2,19 +2,22 @@
 
 //initialize some paths
 output=argument1
-path=working_directory+"\ffmpeg\"
+path=working_directory+"\temp\"
+directory_create(path)
 framepath=path+"frames\"
+directory_create(framepath)
 audiopath=framepath+"audio.mp3"
-ffmpeg=path+"ffmpeg.exe"
+ffmpeg='"'+global.ffmpeg+'" -hide_banner'
 logf=path+"log.txt"
 
-if (!file_exists(ffmpeg)) {
+if (!file_exists(global.ffmpeg)) {
     show_message("Error: FFMPEG.EXE not found. Please refer to the user manual for further instructions.")
     show_info()
     exit
 }
 
 encoding=true
+encoded=false
 su=-1
 render=-1
 status=rmEncoder_AA5B4A99
@@ -24,26 +27,41 @@ abitrate=Abitrate.bitrate
 delta=Delta.delta
 interval=Keyframe.keyframe
 
-directory_create(framepath)
-
 //find video information
 status.str="Gathering information..." screen_redraw() io_handle()
 bat=path+"getfps.bat"
-if (!file_exists(bat)) {
-    //regen bat
-    f=file_text_open_write(bat)
-    file_text_write_string(f,'ffmpeg -i %1 >"%~dp0\log.txt" 2>&1')
-    file_text_close(f)
-}
+
+//write and run bat script
+f=file_text_open_write(bat)
+file_text_write_string(f,ffmpeg+' -i %1 >"%~dp0\log.txt" 2>&1')
+file_text_close(f)
 execute_program_silent(bat+' "'+argument0+'"')
 sleep(100)
+file_delete(bat)
 
 //get information out of ffmpeg
+if (!file_exists(logf)) {
+    show_message("Error: FFMPEG didn't produce a log file.")
+    exit
+}
 str=file_text_read_all(logf,"")
+file_delete(logf)
+
+if (!string_pos("Input #0, ",str))
+or (string_pos("Duration: N/A",str)) {
+    ffmpeg_error("##Duration seems to be unavailable.##",str)
+    exit
+}
+
 gifmode=!!string_pos("Video: gif,",str)
 
 //get fps
 p2=string_pos(" tbr,",str)
+if (!p2) p2=string_pos(" fps,",str)
+if (!p2) {
+    ffmpeg_error("##Cannot find video tbr/fps.##",str)
+    exit
+}
 p1=p2 do {p1-=1} until (string_char_at(str,p1)==" ")
 videofps=real(string_copy(str,p1,p2-p1))
 
@@ -77,6 +95,10 @@ repeat (string_token_start(str,", ")) {
 
 //get duration
 p1=string_pos("Duration: ",str)+10
+if (!p1) {
+    ffmpeg_error("##Cannot find duration information.##",str)
+    exit
+}
 p2=p1 do {p2+=1} until (string_char_at(str,p2)==",")
 string_token_start(string_copy(str,p1,p2-p1),":")
 hour=real(string_token_next())
@@ -84,8 +106,17 @@ minute=real(string_token_next())
 second=real(string_token_next())
 duration=hour*3600+minute*60+second
 
-if (videofps<1 || w<5 || h<5 || duration<0.05) {
-    show_message("Something went wrong gathering video information. Show this to renex:##fps: "+string(videofps)+" size: "+string(w)+"x"+string(h)+" len: "+string(duration)+"##"+str)
+//sanity checks
+if (videofps<=0) {
+    ffmpeg_error("##Detected fps is zero or negative: "+string(videofps)+"##",str)
+    exit
+}
+if (w<5 || h<5) {
+    ffmpeg_error("##Detected size is too small: "+string(w)+"x"+string(h)+"##",str)
+    exit
+}
+if (duration<0.05) {
+    ffmpeg_error("##Detected duration is too short: "+string(duration)+"##",str)
     exit
 }
 
@@ -100,7 +131,7 @@ if (free<space*pngfactor) if (!show_question(
     +filename_drive(working_directory)
     +" drive, but only "
     +string(free/1024/1024)
-    +" MB is available.##Would you still like to try?"
+    +" MB is available.##Would you still like to try regardless?"
 )) {
     status.str="Operation cancelled."
     exit
@@ -129,6 +160,7 @@ if (!file_exists(audiopath)) {
     len=buffer_get_size(b2)
     buffer_write_u32(b,len)
     buffer_copy(b,b2)
+    file_delete(audiopath)
 }
 
 //get all frames in order and count them
@@ -146,6 +178,18 @@ buffer_write_u16(b,h)
 keyframes=0
 firstframe=true
 i=0 repeat (count) {
+    if (keyboard_check_direct(vk_escape)) {
+        status.str="Operation cancelled."
+        if (surface_exists(su)) surface_free(su) su=-1
+        if (surface_exists(render)) surface_free(render) render=-1
+        repeat (count-i) {
+            file_delete(ds_list_find_value(list,i))
+        i+=1}
+        buffer_destroy(b)
+        buffer_destroy(b2)
+        encoding=false
+        exit
+    }
     //load a frame
     fn=ds_list_find_value(list,i)
     bg=background_add(fn,0,0)
@@ -200,7 +244,7 @@ i=0 repeat (count) {
     surface_reset_target()
 
     //update window
-    status.str="Encoding: "+string(round(i/count*100))+"%" screen_redraw() io_handle() if (keyboard_check_direct(vk_space)) sleep(100)
+    status.str="Encoding: "+string(round(i/count*100))+"%" set_application_title(status.str) screen_redraw() io_handle()
 i+=1}
 
 buffer_write_u32(b,keyframes)
@@ -211,14 +255,15 @@ i+=1}
 
 //save video file
 buffer_save(b,output)
+encoded=true
 
 status.str="Finished! Size: "+string(buffer_get_size(b)/1024/1024)+" MB"
+set_application_title("Video Encoder")
 
 //cleanup
-file_delete(audiopath)
-file_delete(logf)
 buffer_destroy(b)
 buffer_destroy(b2)
-surface_free(su)
+if (surface_exists(su)) surface_free(su) su=-1
+if (surface_exists(render)) surface_free(render) render=-1
 shader_reset()
 encoding=false
