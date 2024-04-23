@@ -6,7 +6,4 @@ gm82gex.py
 *.exe
 *.mp4
 *.ini
-encoder/ffmpeg/ffmpeg.exe
-encoder/ffmpeg/getfps.bat
-encoder/ffmpeg/frames
 cache
