@@ -15,7 +15,7 @@
             //alternate timing
             __position=__gm82video_current
             __timer=get_timer()
-            if (__timer>__gm82video_lastframe+__gm82video_frametime/__gm82video_speed || __gm82video_current==-1) {
+            if (__timer>=__gm82video_lastframe+__gm82video_frametime/__gm82video_speed || __gm82video_current==-1) {
                 __position=__gm82video_current+1
                 __gm82video_lastframe=__timer
             }
