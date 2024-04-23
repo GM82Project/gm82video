@@ -1,0 +1,1 @@
+video_reset(video)
