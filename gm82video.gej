@@ -3,7 +3,7 @@
 	"folder": "gm82",
 	"version": "1.0",
 	"author": "renex",
-	"date": "19/04/2024",
+	"date": "22/04/2024",
 	"license": "Free to use, also for commercial games.",
 	"description": "Extension to allow video playback onto surfaces. Requires Core, Network, DirectX9 and Sound.",
 	"helpfile": "",
@@ -222,6 +222,29 @@
 					"helpline": "",
 					"hidden": true,
 					"argtypes": null,
+					"returntype": 2
+				},
+				{
+					"name": "video_set_loop",
+					"extname": "",
+					"calltype": 2,
+					"helpline": "video_set_loop(video,loop)",
+					"hidden": false,
+					"argtypes": [
+						2,
+						2
+					],
+					"returntype": 2
+				},
+				{
+					"name": "video_get_size",
+					"extname": "",
+					"calltype": 2,
+					"helpline": "video_get_size(video)",
+					"hidden": false,
+					"argtypes": [
+						2
+					],
 					"returntype": 2
 				}
 			],

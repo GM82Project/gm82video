@@ -161,6 +161,16 @@
     return -1
     
 
+#define video_get_size
+    ///video_get_size(video)
+    //Returns the size in memory of the video in bytes.
+    with (argument0) if (object_index==__gm82video_object) {
+        return buffer_get_size(__gm82video_buffer)
+    }
+    show_error("Invalid video instance passed to function video_get_width ("+string(argument0)+")",0)
+    return -1
+
+
 #define video_get_width
     ///video_get_width(video)
     //Returns the width of the video in pixels.
@@ -281,6 +291,17 @@
         return 1
     }
     show_error("Invalid video instance passed to function video_set_speed ("+string(argument0)+")",0)
+    return -1
+
+
+#define video_set_loop
+    ///video_set_loop(video,loop)
+    //Sets video loop setting.
+    with (argument0) if (object_index==__gm82video_object) {
+        __gm82video_loop=!!argument0        
+        return 1
+    }
+    show_error("Invalid video instance passed to function video_set_loop ("+string(argument0)+")",0)
     return -1
 
 
