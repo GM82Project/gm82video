@@ -16,21 +16,28 @@ video=noone
 mute=false
 restart=false
 
-if (parameter_count()>0) {
-    fn=parameter_string(1)
-    if (filename_ext(fn)==".rv2") {
-        global.video=video_play(fn)
-        set_application_title(filename_name(fn))
-        room_caption=filename_name(fn)+" - Game Maker 8.2 Video Player"
-        window_set_size(max(640,video_get_width(video)),max(512,video_get_height(video)+64))
-        restart=true
-    }
-} else {
-    window_set_size(640,512)
+file_drag_enable(1)
+
+if (parameter_count()) {
+    alarm[0]=2
 }
 
-file_drag_enable(1)
+window_set_size(640,512)
 #define Alarm_0
+/*"/*'/**//* YYD ACTION
+lib_id=1
+action_id=603
+applies_to=self
+*/
+fn=parameter_string(1)
+if (filename_ext(fn)==".rv2") {
+    video=video_play(fn)
+    set_application_title(filename_name(fn))
+    room_caption=filename_name(fn)+" - Game Maker 8.2 Video Player"
+    window_set_size(max(640,video_get_width(video)),max(512,video_get_height(video)+64))
+    restart=true
+}
+#define Alarm_1
 /*"/*'/**//* YYD ACTION
 lib_id=1
 action_id=603
@@ -60,18 +67,20 @@ if (file_drag_count()) {
     file_drag_clear()
 }
 
-nw=max(640,window_get_width())
-nh=max(512,window_get_height())
+nw=window_get_width()
+nh=window_get_height()
 
 if (nw!=w)
 or (nh!=h)
 or (restart) {
-    w=nw
-    h=nh
+    w=max(640,nw)
+    h=max(512,nh)
+    window_set_size(w,h)
     restart=false
     room_set_width(room,w)
     room_set_height(room,h)
     room_restart()
+    alarm[1]=1
 }
 #define Mouse_53
 /*"/*'/**//* YYD ACTION
@@ -92,8 +101,6 @@ applies_to=self
 event_step()
 
 if (video) room_caption=filename_name(fn)+" - Game Maker 8.2 Video Player"
-
-alarm[0]=2
 #define Draw_0
 /*"/*'/**//* YYD ACTION
 lib_id=1
