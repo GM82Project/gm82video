@@ -44,5 +44,6 @@ if (!file_exists(fn)) {
     Abitrate.bitrate=ini_read_real("encoder","bitrate",80)
     Delta.delta=ini_read_real("encoder","delta",10)
     Keyframe.keyframe=ini_read_real("encoder","keyframe",20)
+    Muter.mute=ini_read_real("encoder","mute",0)
     ini_close()
 }

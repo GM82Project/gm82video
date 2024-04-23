@@ -26,6 +26,7 @@ scaling=Scaling.scaling
 abitrate=Abitrate.bitrate
 delta=Delta.delta
 interval=Keyframe.keyframe
+mute=Muter.mute
 
 //find video information
 status.str="Gathering information..." screen_redraw() io_handle()
@@ -153,7 +154,7 @@ if (string_pos("Duration: N/A",str)) {
 status.str="Exporting frames..." screen_redraw() io_handle()
 if (scaling!=1) option='-vf "scale=iw*'+string(scaling)+':ih*'+string(scaling)+'"' else option=""
 execute_program_silent(ffmpeg+' -i "'+argument0+'" '+option+' "'+framepath+'frame%06d.png"')
-if (!gifmode) {
+if (!gifmode && !mute) {
     status.str="Exporting audio..." screen_redraw() io_handle()
     execute_program_silent(ffmpeg+' -i "'+argument0+'" -vn -ab '+string(abitrate)+'k -y "'+audiopath+'"')
 }

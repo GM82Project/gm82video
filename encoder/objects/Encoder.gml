@@ -11,6 +11,8 @@ file_drag_enable(1)
 if (file_find_first("*.gm82",0)!="") set_working_directory(directory_previous(working_directory))
 file_find_close()
 
+room_speed=display_get_frequency()
+
 output=""
 encoding=false
 encoded=false

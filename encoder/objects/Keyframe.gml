@@ -12,7 +12,7 @@ lib_id=1
 action_id=603
 applies_to=self
 */
-if (grab) keyframe=round(lerp(0,100,saturate((mouse_x-x)/200)))
+if (grab) keyframe=round(lerp(0,100,saturate((mouse_x-x)/sprite_width)))
 #define Mouse_4
 /*"/*'/**//* YYD ACTION
 lib_id=1
@@ -41,7 +41,7 @@ action_id=603
 applies_to=self
 */
 draw_self()
-l=keyframe*2
+l=keyframe/100*sprite_width
 
 draw_line(x+l,y,x+l,y+31)
 if (keyframe==0) draw_text(x,y,"Disabled")

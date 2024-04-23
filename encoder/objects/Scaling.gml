@@ -12,7 +12,7 @@ lib_id=1
 action_id=603
 applies_to=self
 */
-if (grab) scaling=clamp(roundto((mouse_x-x)/2,5),5,100)/100
+if (grab) scaling=clamp(roundto((mouse_x-x)/sprite_width*100,5),5,100)/100
 #define Mouse_4
 /*"/*'/**//* YYD ACTION
 lib_id=1
@@ -41,5 +41,6 @@ action_id=603
 applies_to=self
 */
 draw_self()
-draw_line(x+scaling*200,y,x+scaling*200,y+31)
+l=scaling*sprite_width
+draw_line(x+l,y,x+l,y+31)
 draw_text(x,y,string(round(scaling*100))+"%")
