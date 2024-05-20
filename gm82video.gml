@@ -327,6 +327,7 @@
         buffer_destroy(__gm82video_framebuffer)
         file_delete(__gm82video_audiofile)
         if (surface_exists(__gm82video_surface)) surface_free(__gm82video_surface)
+        if (surface_exists(__gm82video_scratch)) surface_free(__gm82video_scratch)
         instance_destroy()
         
         return 0
