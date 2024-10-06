@@ -11,7 +11,7 @@ lib_id=1
 action_id=603
 applies_to=self
 */
-fn=get_open_filename("Anything|*.*","")
+fn=get_open_filename("Any video file|*.mp4;*.mov;*.gp3;*.mkv;*.ogv;*.wmv;*.bik;*.mpg;*.mpeg;*.smk;*.m4v;*.avi;","")
 if (fn!="") {
     name=fn
     with (Previewer) if (vid) {video_destroy(vid) vid=noone}
