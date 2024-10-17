@@ -11,10 +11,11 @@ lib_id=1
 action_id=603
 applies_to=self
 */
-fn=get_open_filename("Any video file|*.mp4;*.mov;*.3gp;*.mkv;*.ogv;*.wmv;*.bik;*.mpg;*.mpeg;*.smk;*.m4v;*.avi;*.gif","")
+fn=get_open_filename("Anything|*.*","")
 if (fn!="") {
     name=fn
     with (Previewer) if (vid) {video_destroy(vid) vid=noone}
+    with (Encoder) encode(File.name,"",0)
 }
 #define Draw_0
 /*"/*'/**//* YYD ACTION

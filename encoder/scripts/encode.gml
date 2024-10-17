@@ -1,4 +1,4 @@
-///encode(input,output)
+///encode(input,output,encode)
 
 //initialize some paths
 output=argument1
@@ -15,6 +15,8 @@ if (!file_exists(global.ffmpeg)) {
     show_info()
     exit
 }
+
+viderr=". Are you sure you loaded a video? Plain music files are not supported.##"
 
 encoding=true
 encoded=false
@@ -59,13 +61,13 @@ gifmode=!!string_pos("Video: gif,",str)
 p2=string_pos(" tbr,",str)
 if (!p2) p2=string_pos(" fps,",str)
 if (!p2) {
-    ffmpeg_error("##Cannot find video tbr/fps.##",str)
+    ffmpeg_error("##Cannot find video fps"+viderr,str)
     exit
 }
 p1=p2 do {p1-=1} until (string_char_at(str,p1)==" ")
 videofps=real(string_copy(str,p1,p2-p1))
 if (videofps<=0) {
-    ffmpeg_error("##Detected fps is zero or negative: "+string(videofps)+"##",str)
+    ffmpeg_error("##Detected fps is zero or negative: "+string(videofps)+viderr,str)
     exit
 }
 
@@ -118,7 +120,7 @@ if (string_pos("Duration: N/A",str)) {
 } else {
     p1=string_pos("Duration: ",str)+10
     if (!p1) {
-        ffmpeg_error("##Cannot find duration information.##",str)
+        ffmpeg_error("##Cannot find duration information"+viderr,str)
         exit
     }
     p2=p1 do {p2+=1} until (string_char_at(str,p2)==",")
@@ -129,7 +131,7 @@ if (string_pos("Duration: N/A",str)) {
     duration=hour*3600+minute*60+second
 
     if (duration<0.05) {
-        ffmpeg_error("##Detected duration is too short: "+string(duration)+"##",str)
+        ffmpeg_error("##Detected duration is too short: "+string(duration)+viderr,str)
         exit
     }
     //check disk space
@@ -148,6 +150,11 @@ if (string_pos("Duration: N/A",str)) {
         status.str="Operation cancelled."
         exit
     }
+}
+
+if (!argument2) {
+    status.str="Ready to encode"
+    exit
 }
 
 //extract frames and audio
