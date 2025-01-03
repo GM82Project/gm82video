@@ -3,16 +3,15 @@
 	"folder": "gm82",
 	"version": "1.0",
 	"author": "renex",
-	"date": "22/04/2024",
+	"date": "02/01/2025",
 	"license": "Free to use, also for commercial games.",
-	"description": "Extension to allow video playback onto surfaces. Requires Core, Network, DirectX9 and Sound.",
+	"description": "Extension to allow video playback onto surfaces. Requires Core, Network, DirectX9, and either Sound or Audio.",
 	"helpfile": "",
 	"hidden": false,
 	"dependencies": [
 		"Game Maker 8.2 Core",
 		"Game Maker 8.2 Network",
-		"Game Maker 8.2 DirectX9",
-		"Game Maker 8.2 Sound"
+		"Game Maker 8.2 DirectX9"
 	],
 	"files": [
 		{
@@ -98,6 +97,17 @@
 					"returntype": 2
 				},
 				{
+					"name": "video_get_size",
+					"extname": "",
+					"calltype": 2,
+					"helpline": "video_get_size(video)",
+					"hidden": false,
+					"argtypes": [
+						2
+					],
+					"returntype": 2
+				},
+				{
 					"name": "video_get_surface",
 					"extname": "",
 					"calltype": 2,
@@ -162,6 +172,18 @@
 					"returntype": 2
 				},
 				{
+					"name": "video_set_loop",
+					"extname": "",
+					"calltype": 2,
+					"helpline": "video_set_loop(video,loop)",
+					"hidden": false,
+					"argtypes": [
+						2,
+						2
+					],
+					"returntype": 2
+				},
+				{
 					"name": "video_set_pause",
 					"extname": "",
 					"calltype": 2,
@@ -207,6 +229,15 @@
 					"returntype": 2
 				},
 				{
+					"name": "__gm82video_postinit",
+					"extname": "",
+					"calltype": 2,
+					"helpline": "",
+					"hidden": true,
+					"argtypes": null,
+					"returntype": 2
+				},
+				{
 					"name": "__gm82video_step",
 					"extname": "",
 					"calltype": 2,
@@ -222,29 +253,6 @@
 					"helpline": "",
 					"hidden": true,
 					"argtypes": null,
-					"returntype": 2
-				},
-				{
-					"name": "video_set_loop",
-					"extname": "",
-					"calltype": 2,
-					"helpline": "video_set_loop(video,loop)",
-					"hidden": false,
-					"argtypes": [
-						2,
-						2
-					],
-					"returntype": 2
-				},
-				{
-					"name": "video_get_size",
-					"extname": "",
-					"calltype": 2,
-					"helpline": "video_get_size(video)",
-					"hidden": false,
-					"argtypes": [
-						2
-					],
 					"returntype": 2
 				}
 			],

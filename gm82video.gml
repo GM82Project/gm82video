@@ -3,15 +3,60 @@
     object_event_add(__gm82video_object,ev_step,ev_step_begin,"
         __gm82video_step()
     ")
+    object_event_add(__gm82video_object,ev_create,0,"
+        __gm82video_postinit()
+    ")
     object_set_persistent(__gm82video_object,true)
+    
+    globalvar __gm82video_compiled;
+    globalvar __gm82video_version; __gm82video_version=100
 
+
+#define __gm82video_postinit
+    ///
+    if (!__gm82video_compiled) {
+        __gm82video_compiled=true
+        
+        //compile the functions used depending on which extension is available
+        globalvar __gm82audio_version;
+        globalvar __gm82snd_version;
+        
+        if (__gm82audio_version>=110) {
+            //audio
+            global.__gm82video_func_isplaying=code_compile("code_return(audio_isplaying(argument0))")
+            global.__gm82video_func_getpos=code_compile("code_return(audio_get_pos(argument0)/__gm82video_audio_length)")
+            global.__gm82video_func_add=code_compile("var aud;aud=audio_load_buffer(argument0) __gm82video_audio_length=max(0.001,audio_get_length(aud)) code_return(aud)")
+            global.__gm82video_func_play=code_compile("code_return(audio_play(argument0))")
+            global.__gm82video_func_stop=code_compile("audio_stop(argument0)")
+            global.__gm82video_func_pitch=code_compile("audio_set_pitch(argument0,argument1)")
+            global.__gm82video_func_volume=code_compile("audio_set_volume(argument0,argument1)")
+            global.__gm82video_func_pause=code_compile("audio_pause(argument0)")
+            global.__gm82video_func_resume=code_compile("audio_resume(argument0)")
+            global.__gm82video_func_delete=code_compile("audio_delete(argument0)")
+        } else if (__gm82snd_version>=132) {
+            //sound
+            global.__gm82video_func_isplaying=code_compile("code_return(sound_isplaying(argument0))")
+            global.__gm82video_func_getpos=code_compile("code_return(sound_get_pos(argument0,unit_unitary))")
+            global.__gm82video_func_add=code_compile("buffer_save(argument0,__gm82video_audiofile) code_return(sound_add(__gm82video_audiofile,3,1))")
+            global.__gm82video_func_play=code_compile("code_return(sound_play(argument0))")
+            global.__gm82video_func_stop=code_compile("sound_stop(argument0)")
+            global.__gm82video_func_pitch=code_compile("sound_pitch(argument0,argument1)")
+            global.__gm82video_func_volume=code_compile("sound_volume(argument0,argument1)")
+            global.__gm82video_func_pause=code_compile("sound_pause(argument0)")
+            global.__gm82video_func_resume=code_compile("sound_resume(argument0)")
+            global.__gm82video_func_delete=code_compile("sound_delete(argument0)")
+        } else {
+            show_error("You need to add either 8.2 Audio or 8.2 Sound to your project to be able to use 8.2 Video.",true)
+            exit
+        }
+    }
 
 #define __gm82video_step
     ///
     var __position,__update,__len,__pos,__key,__timer;
     
     if (__gm82video_playing) {    
-        if (__gm82video_soundtrack=="") {
+        if (!__gm82video_soundtrack_loaded) {
             //alternate timing
             __position=__gm82video_current
             __timer=get_timer()
@@ -21,10 +66,10 @@
             }
         } else {
             //normal timing
-            if (!sound_isplaying(__gm82video_sound)) {
+            if (!code_execute(global.__gm82video_func_isplaying,__gm82video_sound)) {
                 __position=0
                 __gm82video_playing=false
-            } else __position=round(min(1,sound_get_pos(__gm82video_sound,unit_unitary))*__gm82video_total)
+            } else __position=round(min(1,code_execute(global.__gm82video_func_getpos,__gm82video_sound))*__gm82video_total)
         }        
         
         while (__position>__gm82video_current && __gm82video_current<__gm82video_total-1) { 
@@ -89,7 +134,7 @@
         //load movie data
         buffer_load(__gm82video_buffer,argument[0])
 
-        //renex audiovideo v1
+        //renex audiovideo v2
         if (buffer_read_string(__gm82video_buffer)!="renex audiovideo v2") {
             show_error("error in function video_play: file does not appear to be a rav codec blob ("+string(argument[0])+")",0)
             buffer_destroy(__gm82video_buffer)
@@ -102,13 +147,13 @@
         __len=buffer_read_u32(__gm82video_buffer)
         
         if (__len==0) {
-            __gm82video_soundtrack=""
+            __gm82video_soundtrack_loaded=false
         } else {
             __pos=buffer_get_pos(__gm82video_buffer)
             buffer_copy_part(__gm82video_framebuffer,__gm82video_buffer,__pos,__len)
             buffer_set_pos(__gm82video_buffer,__pos+__len)
-            buffer_save(__gm82video_framebuffer,__gm82video_audiofile)
-            __gm82video_soundtrack=sound_add(__gm82video_audiofile,3,1)
+            __gm82video_soundtrack=code_execute(global.__gm82video_func_add,__gm82video_framebuffer)
+            __gm82video_soundtrack_loaded=true
             buffer_clear(__gm82video_framebuffer)
         }
 
@@ -130,8 +175,8 @@
         __gm82video_loop=__loop
         
         //play soundtrack
-        if (__gm82video_soundtrack!="")
-            __gm82video_sound=sound_play(__gm82video_soundtrack)
+        if (__gm82video_soundtrack_loaded)
+            __gm82video_sound=code_execute(global.__gm82video_func_play,__gm82video_soundtrack)
         else
             __gm82video_lastframe=get_timer()
             __gm82video_frametime=1000000/__gm82video_fps
@@ -149,10 +194,10 @@
     with (argument0) if (object_index==__gm82video_object) {
         buffer_set_pos(__gm82video_buffer,__gm82video_1stframe)
         __gm82video_current=-1
-        if (__gm82video_soundtrack!="") {
-            sound_stop(__gm82video_sound)
-            __gm82video_sound=sound_play(__gm82video_soundtrack)
-            sound_pitch(__gm82video_sound,__gm82video_speed)
+        if (__gm82video_soundtrack_loaded) {
+            code_execute(global.__gm82video_func_stop,__gm82video_sound)
+            __gm82video_sound=code_execute(global.__gm82video_func_play,__gm82video_soundtrack)
+            code_execute(global.__gm82video_func_pitch,__gm82video_sound,__gm82video_speed)
         }
         __gm82video_playing=1
         return 0        
@@ -259,7 +304,7 @@
     ///video_set_volume(video,volume)
     //Sets the audio volume for the video.
     with (argument0) if (object_index==__gm82video_object) {
-        if (__gm82video_soundtrack!="") sound_volume(__gm82video_sound,argument1)
+        if (__gm82video_soundtrack_loaded) code_execute(global.__gm82video_func_volume,__gm82video_sound,argument1)
         return 1
     }
     show_error("Invalid video instance passed to function video_set_volume ("+string(argument0)+")",0)
@@ -271,9 +316,9 @@
     //Pauses or unpauses video playback.
     with (argument0) if (object_index==__gm82video_object) {
         __gm82video_playing=!argument1
-        if (__gm82video_soundtrack!="") {
-            if (__gm82video_playing) sound_resume(__gm82video_sound)
-            else sound_pause(__gm82video_sound)
+        if (__gm82video_soundtrack_loaded) {
+            if (__gm82video_playing) code_execute(global.__gm82video_func_resume,__gm82video_sound)
+            else code_execute(global.__gm82video_func_pause,__gm82video_sound)
         }
         return 1
     }
@@ -286,7 +331,7 @@
     //Sets video playback speed from 0 to 4x.
     with (argument0) if (object_index==__gm82video_object) {
         __gm82video_speed=median(0,argument1,4)
-        if (__gm82video_soundtrack!="") sound_pitch(__gm82video_sound,__gm82video_speed)
+        if (__gm82video_soundtrack_loaded) code_execute(global.__gm82video_func_pitch,__gm82video_sound,__gm82video_speed)
         
         return 1
     }
@@ -319,9 +364,9 @@
     ///video_destroy(video)
     //Destroys a video and frees all associated memory.
     with (argument0) if (object_index==__gm82video_object) {
-        if (__gm82video_soundtrack!="") {
-            sound_stop(__gm82video_sound)
-            sound_delete(__gm82video_soundtrack)
+        if (__gm82video_soundtrack_loaded) {
+            code_execute(global.__gm82video_func_stop,__gm82video_sound)
+            code_execute(global.__gm82video_func_delete,__gm82video_soundtrack)
         }
         buffer_destroy(__gm82video_buffer)
         buffer_destroy(__gm82video_framebuffer)
