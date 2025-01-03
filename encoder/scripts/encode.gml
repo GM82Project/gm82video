@@ -6,7 +6,7 @@ path=working_directory+"\temp\"
 directory_create(path)
 framepath=path+"frames\"
 directory_create(framepath)
-audiopath=framepath+"audio.mp3"
+audiopath=framepath+"audio.ogg"
 ffmpeg='"'+global.ffmpeg+'" -hide_banner'
 logf=path+"log.txt"
 
