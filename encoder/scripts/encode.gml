@@ -170,7 +170,7 @@ sleep(100)
 //initialize buffers
 b=buffer_create()
 b2=buffer_create()
-buffer_write_string(b,"renex audiovideo v2")
+buffer_write_string(b,"renex audiovideo v3")
 
 //add audio blob
 if (!file_exists(audiopath)) {

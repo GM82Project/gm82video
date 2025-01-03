@@ -116,7 +116,7 @@
 #define video_play
     ///video_play(filename.rv2,[loop])
     //Loads a video and returns a video instance.
-    var __loop;
+    var __loop,__sig;
     
     __loop=0
     if (argument_count>1) __loop=argument[1]
@@ -135,7 +135,17 @@
         buffer_load(__gm82video_buffer,argument[0])
 
         //renex audiovideo v2
-        if (buffer_read_string(__gm82video_buffer)!="renex audiovideo v2") {
+        __sig=buffer_read_string(__gm82video_buffer)
+        if (__sig=="renex audiovideo v2") {
+            //we allow rv2 v2 for as long as you're using Sound (for mp3 support)
+            if (__gm82snd_version<132) {
+                show_error("error in function video_play: file appears to be an older format rv2, please re-encode using latest Encoder or switch to the Sound extension ("+string(argument[0])+")",0)
+                buffer_destroy(__gm82video_buffer)
+                buffer_destroy(__gm82video_framebuffer)
+                instance_destroy()
+                return noone
+            }
+        } else if (__sig!="renex audiovideo v3") {
             show_error("error in function video_play: file does not appear to be a rav codec blob ("+string(argument[0])+")",0)
             buffer_destroy(__gm82video_buffer)
             buffer_destroy(__gm82video_framebuffer)
