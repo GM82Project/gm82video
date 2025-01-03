@@ -31,11 +31,7 @@ applies_to=self
 */
 fn=parameter_string(1)
 if (filename_ext(fn)==".rv2") {
-    video=video_play(fn)
-    set_application_title(filename_name(fn))
-    room_caption=filename_name(fn)+" - Game Maker 8.2 Video Player"
-    window_set_size(max(640,video_get_width(video)),max(512,video_get_height(video)+64))
-    restart=true
+    load_and_play(fn)
 }
 #define Alarm_1
 /*"/*'/**//* YYD ACTION
@@ -54,15 +50,7 @@ if (file_drag_count()) {
     fn=file_drag_name(0)
     if (filename_ext(fn)==".rv2") {
         if (video) video_destroy(video)
-        video=video_play(fn)
-        set_application_title(filename_name(fn))
-        room_caption=filename_name(fn)+" - Game Maker 8.2 Video Player"
-        if (video) {
-            video_set_volume(video,!mute)
-            window_set_size(max(640,video_get_width(video)),max(512,video_get_height(video)+64))
-            restart=true
-        }
-        window_set_foreground()
+        load_and_play(fn)
     }
     file_drag_clear()
 }
