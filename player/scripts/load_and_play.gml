@@ -1,4 +1,4 @@
-video=video_play(argument0)
+video=video_play(argument0,video_use_interframe)
 set_application_title(filename_name(argument0))
 room_caption=filename_name(argument0)+" - Game Maker 8.2 Video Player"
 if (video) {

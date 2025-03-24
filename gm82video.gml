@@ -64,25 +64,42 @@
                 __position=__gm82video_current+1
                 __gm82video_lastframe=__timer
             }
+            __gm82video_iframepos=saturate((__timer-__gm82video_lastframe)/(__gm82video_frametime/__gm82video_speed))
         } else {
             //normal timing
             if (!code_execute(global.__gm82video_func_isplaying,__gm82video_sound)) {
                 __position=0
                 __gm82video_playing=false
-            } else __position=round(min(1,code_execute(global.__gm82video_func_getpos,__gm82video_sound))*__gm82video_total)
-        }        
+            } else __position=min(1,code_execute(global.__gm82video_func_getpos,__gm82video_sound))*__gm82video_total
+            
+            __gm82video_iframepos=frac(__position)
+            __position=floor(__position)
+        }
         
         while (__position>__gm82video_current && __gm82video_current<__gm82video_total-1) { 
             __gm82video_current+=1
-            buffer_clear(__gm82video_framebuffer)
             
             //unpack one frame
+            buffer_clear(__gm82video_framebuffer)
             __len=buffer_read_u32(__gm82video_buffer)
             __pos=buffer_get_pos(__gm82video_buffer)
             buffer_copy_part(__gm82video_framebuffer,__gm82video_buffer,__pos,__len)
             buffer_inflate(__gm82video_framebuffer)
-            buffer_set_pos(__gm82video_buffer,__pos+__len)            
+            buffer_set_pos(__gm82video_buffer,__pos+__len)   
+            
             __gm82video_update_frame()
+        }
+        
+        if (__gm82video_options & video_use_interframe) {           
+            if (!surface_exists(__gm82video_surface1)) __gm82video_surface1=surface_create(__gm82video_width,__gm82video_height)
+            if (!surface_exists(__gm82video_surface2)) __gm82video_surface2=surface_create(__gm82video_width,__gm82video_height)
+            surface_set_target(__gm82video_surface2)
+            draw_clear(0)
+            draw_surface(__gm82video_surface1,0,0)
+            d3d_set_color_mask(1,1,1,0)
+            draw_surface_ext(__gm82video_surface,0,0,1,1,0,$ffffff,__gm82video_iframepos+(__gm82video_current==0))
+            d3d_set_color_mask(1,1,1,1)
+            surface_reset_target()
         }
         
         if (__gm82video_current>=__gm82video_total-1) {
@@ -96,30 +113,41 @@
     ///    
     var __size,__cur;
     
+    //create surfaces
     if (!surface_exists(__gm82video_surface))
         __gm82video_surface=surface_create(__gm82video_width,__gm82video_height)
     if (!surface_exists(__gm82video_scratch))
         __gm82video_scratch=surface_create(__gm82video_width,__gm82video_height)
+    
+    
+    //decode curframe
     __size=__gm82video_width*__gm82video_height*4
     __cur=buffer_get_size(__gm82video_framebuffer)
     if (__cur!=__size) {
         show_error("error decoding frame ("+string(__gm82video_current)+"/"+string(__gm82video_total)+"): buffer size was invalid ("+string(__cur)+"/"+string(__size)+")",0)
         return -1
     }
-    
     buffer_set_surface(__gm82video_framebuffer,__gm82video_scratch)
+
+    if (__gm82video_options & video_use_interframe) {           
+        if (!surface_exists(__gm82video_surface1)) __gm82video_surface1=surface_create(__gm82video_width,__gm82video_height)
+        surface_copy(__gm82video_surface1,0,0,__gm82video_surface)
+    }
+
     surface_set_target(__gm82video_surface)
     draw_surface(__gm82video_scratch,0,0)
     surface_reset_target()
 
 
 #define video_play
-    ///video_play(filename.rv2,[loop])
+    ///video_play(filename.rv2,[options])
     //Loads a video and returns a video instance.
-    var __loop,__sig;
+    var __loop,__sig,__opts;
     
-    __loop=0
-    if (argument_count>1) __loop=argument[1]
+    __opts=0
+    if (argument_count>1) __opts=argument[1]
+    
+    __loop=__opts & video_loop
     
     if (!file_exists(argument[0])) {
         show_error("error in function video_play: loading nonexisting file ("+string(argument[0])+")",0)
@@ -129,6 +157,8 @@
     with (instance_create(0,0,__gm82video_object)) {        
         __gm82video_buffer=buffer_create()
         __gm82video_framebuffer=buffer_create()
+        __gm82video_options=__opts
+        __gm82video_iframepos=0
         var __i; __i=0 do {__gm82video_audiofile=temp_directory+"\"+filename_name(argument[0])+string(__i)+".mp3" __i+=1} until (!file_exists(__gm82video_audiofile))
 
         //load movie data
@@ -178,6 +208,8 @@
         //initialize variables
         __gm82video_1stframe=buffer_get_pos(__gm82video_buffer)
         __gm82video_surface=-1
+        __gm82video_surface1=-1
+        __gm82video_surface2=-1
         __gm82video_scratch=-1
         __gm82video_current=-1
         __gm82video_speed=1
@@ -292,6 +324,7 @@
     with (argument0) if (object_index==__gm82video_object) {
         if (!surface_exists(__gm82video_surface))
             __gm82video_update_frame()
+        if (__gm82video_options & video_use_interframe) return __gm82video_surface2
         return __gm82video_surface
     }
     show_error("Invalid video instance passed to function video_get_surface ("+string(argument0)+")",0)
@@ -304,6 +337,7 @@
     with (argument0) if (object_index==__gm82video_object) {
         if (!surface_exists(__gm82video_surface))
             __gm82video_update_frame()
+        if (__gm82video_options & video_use_interframe) return surface_get_texture(__gm82video_surface2)
         return surface_get_texture(__gm82video_surface)
     }
     show_error("Invalid video instance passed to function video_get_texture ("+string(argument0)+")",0)
@@ -382,6 +416,8 @@
         buffer_destroy(__gm82video_framebuffer)
         file_delete(__gm82video_audiofile)
         if (surface_exists(__gm82video_surface)) surface_free(__gm82video_surface)
+        if (surface_exists(__gm82video_surface1)) surface_free(__gm82video_surface1)
+        if (surface_exists(__gm82video_surface2)) surface_free(__gm82video_surface2)
         if (surface_exists(__gm82video_scratch)) surface_free(__gm82video_scratch)
         instance_destroy()
         
@@ -414,10 +450,7 @@
             return -1
         }
         
-        if (!surface_exists(__gm82video_surface))
-            __gm82video_update_frame()
-        
-        draw_surface_stretched_ext(__gm82video_surface,argument[1],argument[2],__w,__h,__c,__a)
+        draw_surface_stretched_ext(video_get_surface(id),argument[1],argument[2],__w,__h,__c,__a)
         
         return 1
     }

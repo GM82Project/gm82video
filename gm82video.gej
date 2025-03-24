@@ -3,7 +3,7 @@
 	"folder": "gm82",
 	"version": "1.0",
 	"author": "renex",
-	"date": "02/01/2025",
+	"date": "24/03/2025",
 	"license": "Free to use, also for commercial games.",
 	"description": "Extension to allow video playback onto surfaces. Requires Core, Network, DirectX9, and either Sound or Audio.",
 	"helpfile": "",
@@ -155,7 +155,7 @@
 					"name": "video_play",
 					"extname": "",
 					"calltype": 2,
-					"helpline": "video_play(filename.rav,[loop])",
+					"helpline": "video_play(filename.rv2,[options])",
 					"hidden": false,
 					"argtypes": null,
 					"returntype": 2
@@ -261,6 +261,16 @@
 					"name": "__gm82video_object",
 					"value": "object_add()",
 					"hidden": true
+				},
+				{
+					"name": "video_use_interframe",
+					"value": "2",
+					"hidden": false
+				},
+				{
+					"name": "video_loop",
+					"value": "1",
+					"hidden": false
 				}
 			]
 		}
