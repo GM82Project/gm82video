@@ -11,12 +11,7 @@ lib_id=1
 action_id=603
 applies_to=self
 */
-fn=get_open_filename("Anything|*.*","")
-if (fn!="") {
-    name=fn
-    with (Previewer) if (vid) {video_destroy(vid) vid=noone}
-    with (Encoder) encode(File.name,"",0)
-}
+load_video_file(get_open_filename("Anything|*.*",""))
 #define Draw_0
 /*"/*'/**//* YYD ACTION
 lib_id=1

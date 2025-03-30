@@ -23,11 +23,7 @@ action_id=603
 applies_to=self
 */
 if (file_drag_count()) {
-    fn=file_drag_name(0)
-
-    File.name=fn
-    with (Previewer) if (vid) {video_destroy(vid) vid=noone}
-
+    load_video_file(file_drag_name(0))
     file_drag_clear()
 }
 #define Other_2
