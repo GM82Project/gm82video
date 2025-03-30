@@ -2,8 +2,10 @@
 	|Encoder
 	|Text
 	|File
+	|SaveAs
 	|Scaling
 	|Abitrate
+	|Fps
 	|Delta
 	|Keyframe
 	|Preset

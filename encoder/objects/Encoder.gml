@@ -16,6 +16,8 @@ room_speed=display_get_frequency()
 output=""
 encoding=false
 encoded=false
+
+videofps=30
 #define Step_0
 /*"/*'/**//* YYD ACTION
 lib_id=1

@@ -1,7 +1,10 @@
-///encode(input,output,encode)
+///encode(input,output,actually want to encode)
 
 //initialize some paths
+input=argument0
 output=argument1
+
+if (output=="") output=filename_change_ext(input,".rv2")
 path=working_directory+"\temp\"
 directory_create(path)
 framepath=path+"frames\"
@@ -11,12 +14,12 @@ ffmpeg='"'+global.ffmpeg+'" -hide_banner'
 logf=path+"log.txt"
 
 if (!file_exists(global.ffmpeg)) {
-    show_message("Error: FFMPEG.EXE not found. Please refer to the user manual for further instructions.")
+    show_message("Error: FFMPEG.EXE not found. Please refer to the F1 user manual for further instructions.")
     show_info()
     exit
 }
 
-viderr=". Are you sure you loaded a video? Plain music files are not supported.##"
+viderr=". Are you sure you loaded a video? Plain music files and images are not supported.##"
 
 encoding=true
 encoded=false
@@ -38,7 +41,7 @@ bat=path+"getfps.bat"
 f=file_text_open_write(bat)
 file_text_write_string(f,ffmpeg+' -i %1 >"%~dp0\log.txt" 2>&1')
 file_text_close(f)
-execute_program_silent(bat+' "'+argument0+'"')
+execute_program_silent(bat+' "'+input+'"')
 sleep(100)
 file_delete(bat)
 
@@ -154,16 +157,18 @@ if (string_pos("Duration: N/A",str)) {
 
 if (!argument2) {
     status.str="Ready to encode"
+    //sorry just looking around
     exit
 }
 
 //extract frames and audio
 status.str="Exporting frames..." screen_redraw() io_handle()
-if (scaling!=1) option='-vf "scale=iw*'+string(scaling)+':ih*'+string(scaling)+'"' else option=""
-execute_program_silent(ffmpeg+' -i "'+argument0+'" '+option+' "'+framepath+'frame%06d.png"')
+if (scaling!=1) option='-vf "fps='+string(Fps.vfps)+', scale=iw*'+string(scaling)+':ih*'+string(scaling)+'"' else option=""
+show_message(option)
+execute_program_silent(ffmpeg+' -i "'+input+'" '+option+' "'+framepath+'frame%06d.png"')
 if (!gifmode && !mute) {
     status.str="Exporting audio..." screen_redraw() io_handle()
-    execute_program_silent(ffmpeg+' -i "'+argument0+'" -vn -ab '+string(abitrate)+'k -y "'+audiopath+'"')
+    execute_program_silent(ffmpeg+' -i "'+input+'" -vn -ab '+string(abitrate)+'k -y "'+audiopath+'"')
 }
 sleep(100)
 
@@ -189,7 +194,7 @@ ds_list_sort(list,1)
 count=ds_list_size(list)
 
 //write movie header
-buffer_write_float(b,videofps)
+buffer_write_float(b,Fps.vfps)
 buffer_write_u32(b,count)
 buffer_write_u16(b,w)
 buffer_write_u16(b,h)

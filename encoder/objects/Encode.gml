@@ -19,7 +19,7 @@ action_id=603
 applies_to=self
 */
 if (sel) if (File.name!="") {
-    with (Encoder) encode(File.name,filename_change_ext(File.name,".rv2"),1)
+    with (Encoder) encode(File.name,File.save_as,1)
 }
 sel=0
 #define Mouse_11
