@@ -91,8 +91,9 @@
         }
         
         if (__gm82video_options & video_use_interframe) {           
-            if (!surface_exists(__gm82video_surface1)) __gm82video_surface1=surface_create(__gm82video_width,__gm82video_height)
-            if (!surface_exists(__gm82video_surface2)) __gm82video_surface2=surface_create(__gm82video_width,__gm82video_height)
+            __gm82video_surface=surface_get("__gm82video_surface"+string(id),__gm82video_width,__gm82video_height)
+            __gm82video_surface1=surface_get("__gm82video_surface1"+string(id),__gm82video_width,__gm82video_height)
+            __gm82video_surface2=surface_get("__gm82video_surface2"+string(id),__gm82video_width,__gm82video_height)
             surface_set_target(__gm82video_surface2)
             draw_clear(0)
             draw_surface(__gm82video_surface1,0,0)
@@ -114,10 +115,8 @@
     var __size,__cur;
     
     //create surfaces
-    if (!surface_exists(__gm82video_surface))
-        __gm82video_surface=surface_create(__gm82video_width,__gm82video_height)
-    if (!surface_exists(__gm82video_scratch))
-        __gm82video_scratch=surface_create(__gm82video_width,__gm82video_height)
+    __gm82video_surface=surface_get("__gm82video_surface"+string(id),__gm82video_width,__gm82video_height)
+    __gm82video_scratch=surface_get("__gm82video_scratch"+string(id),__gm82video_width,__gm82video_height)
     
     
     //decode curframe
@@ -130,7 +129,8 @@
     buffer_set_surface(__gm82video_framebuffer,__gm82video_scratch)
 
     if (__gm82video_options & video_use_interframe) {           
-        if (!surface_exists(__gm82video_surface1)) __gm82video_surface1=surface_create(__gm82video_width,__gm82video_height)
+        __gm82video_surface1=surface_get("__gm82video_surface1"+string(id),__gm82video_width,__gm82video_height)
+        __gm82video_surface2=surface_get("__gm82video_surface2"+string(id),__gm82video_width,__gm82video_height)
         surface_copy(__gm82video_surface1,0,0,__gm82video_surface)
     }
 
@@ -415,10 +415,10 @@
         buffer_destroy(__gm82video_buffer)
         buffer_destroy(__gm82video_framebuffer)
         file_delete(__gm82video_audiofile)
-        if (surface_exists(__gm82video_surface)) surface_free(__gm82video_surface)
-        if (surface_exists(__gm82video_surface1)) surface_free(__gm82video_surface1)
-        if (surface_exists(__gm82video_surface2)) surface_free(__gm82video_surface2)
-        if (surface_exists(__gm82video_scratch)) surface_free(__gm82video_scratch)
+        surface_forget("__gm82video_surface"+string(id))
+        surface_forget("__gm82video_surface1"+string(id))
+        surface_forget("__gm82video_surface2"+string(id))
+        surface_forget("__gm82video_scratch"+string(id))
         instance_destroy()
         
         return 0
