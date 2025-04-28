@@ -164,7 +164,6 @@ if (!argument2) {
 //extract frames and audio
 status.str="Exporting frames..." screen_redraw() io_handle()
 if (scaling!=1) option='-vf "fps='+string(Fps.vfps)+', scale=iw*'+string(scaling)+':ih*'+string(scaling)+'"' else option=""
-show_message(option)
 execute_program_silent(ffmpeg+' -i "'+input+'" '+option+' "'+framepath+'frame%06d.png"')
 if (!gifmode && !mute) {
     status.str="Exporting audio..." screen_redraw() io_handle()
