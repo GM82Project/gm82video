@@ -155,9 +155,17 @@ if (string_pos("Duration: N/A",str)) {
     }
 }
 
+//update ui
 if (!argument2) {
     status.str="Ready to encode"
+
+    Previewer.videoinfo="Loaded file: "+filename_name(input)+
+        "#Size: "+string_filesize(file_size(input))+
+        "#Dimensions: "+string(w)+" x "+string(h)+" @ "+string(videofps)+" fps"+
+        "#Length: "+string_pad(hour,2)+":"+string_pad(minute,2)+":"+string_pad(second,2)
+
     //sorry just looking around
+    encoding=false
     exit
 }
 
@@ -282,6 +290,7 @@ buffer_save(b,output)
 encoded=true
 
 status.str="Finished! Size: "+string(buffer_get_size(b)/1024/1024)+" MB"
+with (Previewer) event_user(0)
 set_application_title("Video Encoder")
 
 //cleanup

@@ -3,5 +3,6 @@ name="High Quality"
 scaling=1
 abitrate=128
 delta=5
-keyframe=20
+keyframe=30
+fpsscale=1
 //gm82 fields end

@@ -1,3 +1,10 @@
+#define Create_0
+/*"/*'/**//* YYD ACTION
+lib_id=1
+action_id=603
+applies_to=self
+*/
+smart=false
 #define Mouse_4
 /*"/*'/**//* YYD ACTION
 lib_id=1
@@ -7,6 +14,7 @@ applies_to=self
 Scaling.scaling=scaling
 Abitrate.bitrate=abitrate
 Delta.delta=delta
+Fps.vfps=Encoder.videofps*fpsscale
 Keyframe.keyframe=keyframe
 #define Other_4
 /*"/*'/**//* YYD ACTION
@@ -19,6 +27,8 @@ applies_to=self
 //field abitrate
 //field delta
 //field keyframe
+//field fpsscale
+//field smart: false
 
 /*preview
     draw_set_font(Font("Font"))

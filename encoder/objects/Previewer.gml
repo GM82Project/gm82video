@@ -9,6 +9,8 @@ vid=noone
 str=""
 
 label=rmEncoder_15B7D571
+
+videoinfo=""
 #define Step_0
 /*"/*'/**//* YYD ACTION
 lib_id=1
@@ -44,6 +46,16 @@ if (vid) {
     spd=max(0.25,spd-0.25)
     video_set_speed(vid,spd)
 }
+#define Other_10
+/*"/*'/**//* YYD ACTION
+lib_id=1
+action_id=603
+applies_to=self
+*/
+if (vid) video_destroy(vid)
+
+vid=video_play(Encoder.output)
+str=string(video_get_width(vid))+"x"+string(video_get_height(vid))+" - "+string(video_get_fps(vid))+" fps - "
 #define Draw_0
 /*"/*'/**//* YYD ACTION
 lib_id=1
@@ -75,6 +87,8 @@ if (Encoder.encoding) {
     texture_set_interpolation(1)
     video_draw(vid,x+offx,y+offy,w*scale,h*scale)
     texture_set_interpolation(0)
+} else if (!Encoder.encoded) {
+    draw_text(x,y,videoinfo)
 }
 #define KeyPress_27
 /*"/*'/**//* YYD ACTION

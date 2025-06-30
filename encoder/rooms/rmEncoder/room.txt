@@ -1,7 +1,7 @@
 caption=Game Maker 8.2 Video Encoder
 width=800
 height=608
-snap_x=16
+snap_x=8
 snap_y=16
 isometric=0
 roomspeed=60

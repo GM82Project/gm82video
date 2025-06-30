@@ -7,3 +7,4 @@ load_ini
 save_ini
 ffmpeg_error
 load_video_file
+string_filesize

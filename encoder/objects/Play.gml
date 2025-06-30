@@ -19,13 +19,7 @@ action_id=603
 applies_to=self
 */
 if (sel && Encoder.encoded) if (file_exists(Encoder.output)) {
-    with (Previewer) {
-        if (vid) video_reset(vid)
-        else {
-            vid=video_play(Encoder.output)
-            str=string(video_get_width(vid))+"x"+string(video_get_height(vid))+" - "+string(video_get_fps(vid))+" fps - "
-        }
-    }
+    with (Previewer) event_user(0)
 }
 sel=0
 #define Mouse_11
