@@ -3,14 +3,13 @@
 	"folder": "gm82",
 	"version": "1.0",
 	"author": "renex",
-	"date": "24/03/2025",
+	"date": "03/08/2025",
 	"license": "Free to use, also for commercial games.",
 	"description": "Extension to allow video playback onto surfaces. Requires Core, Network, DirectX9, and either Sound or Audio.",
 	"helpfile": "",
 	"hidden": false,
 	"dependencies": [
 		"Game Maker 8.2 Core",
-		"Game Maker 8.2 Network",
 		"Game Maker 8.2 DirectX9"
 	],
 	"files": [
