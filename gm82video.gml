@@ -21,7 +21,7 @@
         globalvar __gm82audio_version;
         globalvar __gm82snd_version;
         
-        if (__gm82audio_version>=110) {
+        if (__gm82audio_version>=120) {
             //audio
             global.__gm82video_func_isplaying=code_compile("code_return(audio_isplaying(argument0))")
             global.__gm82video_func_getpos=code_compile("code_return(audio_get_pos(argument0)/__gm82video_audio_length)")
@@ -46,7 +46,7 @@
             global.__gm82video_func_resume=code_compile("sound_resume(argument0)")
             global.__gm82video_func_delete=code_compile("sound_delete(argument0)")
         } else {
-            show_error("You need to add either 8.2 Audio or 8.2 Sound to your project to be able to use 8.2 Video.",true)
+            show_error("You need to add either Audio v1.2 or Sound v1.3.2 to your project to be able to use 8.2 Video.",true)
             exit
         }
     }
@@ -166,16 +166,7 @@
 
         //renex audiovideo v2
         __sig=buffer_read_string(__gm82video_buffer)
-        if (__sig=="renex audiovideo v2") {
-            //we allow rv2 v2 for as long as you're using Sound (for mp3 support)
-            if (__gm82snd_version<132) {
-                show_error("error in function video_play: file appears to be an older format rv2, please re-encode using latest Encoder or switch to the Sound extension ("+string(argument[0])+")",0)
-                buffer_destroy(__gm82video_buffer)
-                buffer_destroy(__gm82video_framebuffer)
-                instance_destroy()
-                return noone
-            }
-        } else if (__sig!="renex audiovideo v3") {
+        if (__sig!="renex audiovideo v2" and __sig!="renex audiovideo v3") {
             show_error("error in function video_play: file does not appear to be a rav codec blob ("+string(argument[0])+")",0)
             buffer_destroy(__gm82video_buffer)
             buffer_destroy(__gm82video_framebuffer)
