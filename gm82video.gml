@@ -9,7 +9,7 @@
     object_set_persistent(__gm82video_object,true)
     
     globalvar __gm82video_compiled;
-    globalvar __gm82video_version; __gm82video_version=100
+    globalvar gm82video_version; gm82video_version=100
 
 
 #define __gm82video_postinit
@@ -18,10 +18,10 @@
         __gm82video_compiled=true
         
         //compile the functions used depending on which extension is available
-        globalvar __gm82audio_version;
+        globalvar gm82audio_version;
         globalvar __gm82snd_version;
         
-        if (__gm82audio_version>=120) {
+        if (gm82audio_version>=120) {
             //audio
             global.__gm82video_func_isplaying=code_compile("code_return(audio_isplaying(argument0))")
             global.__gm82video_func_getpos=code_compile("code_return(audio_get_pos(argument0)/__gm82video_audio_length)")
