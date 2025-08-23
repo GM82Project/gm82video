@@ -1,0 +1,29 @@
+name: Build .gex
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+    - name: Download gm82gex
+      run: wget https://raw.githubusercontent.com/GM82Project/gm82gex/main/gm82gex.py
+    - name: Build .gex
+      run: python gm82gex.py ${{github.workspace}}/gm82video.gej --noinstall
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: gm82video
+        path: gm82video.gex
