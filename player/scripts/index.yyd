@@ -7,3 +7,5 @@ fFast
 fMute
 format_time
 load_and_play
+load_theme
+draw_button_ext

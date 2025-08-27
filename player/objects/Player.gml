@@ -23,6 +23,8 @@ if (parameter_count()) {
 }
 
 window_set_size(640,512)
+
+load_theme()
 #define Alarm_0
 /*"/*'/**//* YYD ACTION
 lib_id=1
@@ -97,7 +99,9 @@ applies_to=self
 */
 d3d_set_viewport(0,0,w,h)
 draw_clear(background_color)
-draw_line(0,h-64,w,h-64)
+draw_button_ext(0,h-64,w,64,1,global.col_main)
+
+//draw_line(0,h-64,w,h-64)
 
 if (video) {
     vw=video_get_width(video)
