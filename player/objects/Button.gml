@@ -19,7 +19,7 @@ action_id=603
 applies_to=self
 */
 if (down) {
-    with (Player) if (video) script_execute(other.function)
+    script_execute(function)
 }
 
 down=0

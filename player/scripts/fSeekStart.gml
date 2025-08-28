@@ -1,1 +1,1 @@
-video_reset(video)
+with (Player) if (video) video_reset(video)

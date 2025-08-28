@@ -1,3 +1,10 @@
+#define Create_0
+/*"/*'/**//* YYD ACTION
+lib_id=1
+action_id=603
+applies_to=self
+*/
+down=0
 #define Step_0
 /*"/*'/**//* YYD ACTION
 lib_id=1
@@ -6,6 +13,30 @@ applies_to=self
 */
 y=Player.h-48
 image_xscale=(Player.w-16-x)/32
+
+//if (down) with (Player) video_seek(fgsfdfh)
+#define Mouse_4
+/*"/*'/**//* YYD ACTION
+lib_id=1
+action_id=603
+applies_to=self
+*/
+down=1
+
+if (Player.video)
+    video_set_pause(Player.video,true)
+#define Mouse_56
+/*"/*'/**//* YYD ACTION
+lib_id=1
+action_id=603
+applies_to=self
+*/
+if (down) {
+    if (Player.video)
+        video_set_pause(Player.video,false)
+}
+
+down=0
 #define Draw_0
 /*"/*'/**//* YYD ACTION
 lib_id=1
@@ -24,4 +55,4 @@ if (Player.video) {
     u=0
 }
 
-draw_button_ext(x+u,y,16,32,1,global.col_main)
+draw_button_ext(x+u,y,16,32,!down,global.col_main)
