@@ -39,7 +39,11 @@
             global.__gm82video_func_isplaying=code_compile("code_return(sound_isplaying(argument0))")
             global.__gm82video_func_getpos=code_compile("code_return(sound_get_pos(argument0,unit_unitary))")
             global.__gm82video_func_setpos=code_compile("code_return(sound_set_pos(argument0,argument1,unit_unitary))")
-            global.__gm82video_func_add=code_compile("buffer_save(argument0,__gm82video_audiofile) code_return(sound_add(__gm82video_audiofile,3,1))")
+            global.__gm82video_func_add=code_compile("
+                var __i,__file;
+                __i=0 do {__file=temp_directory+'\'+filename_name(argument[0])+string(__i)+'.mp3' __i+=1} until (!file_exists(__file))            
+                buffer_save(argument0,__file) code_return(sound_add(__file,3,1))
+            ")
             global.__gm82video_func_play=code_compile("code_return(sound_play(argument0))")
             global.__gm82video_func_stop=code_compile("sound_stop(argument0)")
             global.__gm82video_func_pitch=code_compile("sound_pitch(argument0,argument1)")
@@ -156,7 +160,7 @@
         return noone
     }
     
-    with (instance_create(0,0,__gm82video_object)) {        
+    with (instance_create(0,0,__gm82video_object)) {     
         __gm82video_buffer=buffer_create()
         __gm82video_framebuffer=buffer_create()
         __gm82video_options=__opts
@@ -294,6 +298,10 @@
     ///video_seek(video,position)
     //video: video instance
     //position: position to seek to (0 to 1)
+    //returns: success
+    //Note that in order to seek, a video must've been encoded with Keyframes.
+    //The function will return 'true' when seeking is successful, 'false' if it fails, or 'noone' if the video has no keyframes.
+    
     var __findframe,__ptr,__frm,__i,__state;
     
     with (argument0) if (object_index==__gm82video_object) {
@@ -324,20 +332,19 @@
                     __gm82video_step()
                     __gm82video_update_frame()
                     __gm82video_playing=__state
-                    return 1
+                    return true
                 }
             __i+=1}
             
             //couldn't find keyframe?
-            return 0        
+            return false    
         } else {
-            //video has no keyframes; just reset
-            video_reset(argument0)
-            return 0
+            //video has no keyframes;
+            return noone
         }
     }
     show_error("Invalid video instance passed to function video_reset ("+string(argument0)+")",0)
-    return -1
+    return false
     
     
 #define video_reset

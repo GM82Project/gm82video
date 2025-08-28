@@ -23,7 +23,7 @@ var seek;
 
 seek=saturate((mouse_x-8-x)/(sprite_width-16))
 
-with (Player) if (video) video_seek(video,seek)
+with (Player) if (video) if (!video_seek(video,seek)) video_reset(video)
 #define Draw_0
 /*"/*'/**//* YYD ACTION
 lib_id=1
