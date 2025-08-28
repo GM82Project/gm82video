@@ -1,0 +1,40 @@
+string "renex audiovideo v4"
+
+string "[HED]"
+
+float fps
+u32 frame count
+u16 width
+u16 height
+
+u32 position of [SND]
+u32 position of [MOV]
+u32 position of [KEY]
+
+
+string "[SND]"
+
+string file ext
+
+u32 length {
+    ogg
+}
+
+
+string "[MOV]"
+
+<frame count> [
+    u32 length {
+        deflate {
+            surface
+        }
+    }    
+]
+
+
+string "[KEY]"
+
+u32 keyframe count [
+    u32 address
+    u32 frame
+]

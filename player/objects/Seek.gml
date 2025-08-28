@@ -13,30 +13,17 @@ applies_to=self
 */
 y=Player.h-48
 image_xscale=(Player.w-16-x)/32
-
-//if (down) with (Player) video_seek(fgsfdfh)
 #define Mouse_4
 /*"/*'/**//* YYD ACTION
 lib_id=1
 action_id=603
 applies_to=self
 */
-down=1
+var seek;
 
-if (Player.video)
-    video_set_pause(Player.video,true)
-#define Mouse_56
-/*"/*'/**//* YYD ACTION
-lib_id=1
-action_id=603
-applies_to=self
-*/
-if (down) {
-    if (Player.video)
-        video_set_pause(Player.video,false)
-}
+seek=saturate((mouse_x-8-x)/(sprite_width-16))
 
-down=0
+with (Player) if (video) video_seek(video,seek)
 #define Draw_0
 /*"/*'/**//* YYD ACTION
 lib_id=1

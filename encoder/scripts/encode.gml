@@ -180,123 +180,156 @@ if (!gifmode && !mute) {
 sleep(100)
 
 //initialize buffers
-b=buffer_create()
-b2=buffer_create()
-buffer_write_string(b,"renex audiovideo v3")
+    b=buffer_create()
+    b2=buffer_create()
 
-//add audio blob
-if (!file_exists(audiopath)) {
-    buffer_write_u32(b,0)
-} else {
-    buffer_load(b2,audiopath)
-    len=buffer_get_size(b2)
-    buffer_write_u32(b,len)
-    buffer_copy(b,b2)
-    file_delete(audiopath)
-}
+    buffer_write_string(b,"renex audiovideo v4")
+
 
 //get all frames in order and count them
-list=file_find_list(framepath,"*.png",0,0,1)
-ds_list_sort(list,1)
-count=ds_list_size(list)
+    list=file_find_list(framepath,"*.png",0,0,1)
+    ds_list_sort(list,1)
+    count=ds_list_size(list)
 
-//write movie header
-buffer_write_float(b,Fps.vfps)
-buffer_write_u32(b,count)
-buffer_write_u16(b,w)
-buffer_write_u16(b,h)
+
+//write header
+    buffer_write_string(b,"[HED]")
+
+    buffer_write_float(b,Fps.vfps) //fps
+    buffer_write_u32(b,count) //frame count
+    buffer_write_u16(b,w) //width
+    buffer_write_u16(b,h) //height
+
+    snd_ptr_position=buffer_get_pos(b) buffer_write_u32(b,0) //placeholder for snd ptr
+    mov_ptr_position=buffer_get_pos(b) buffer_write_u32(b,0) //placeholder for mov ptr
+    key_ptr_position=buffer_get_pos(b) buffer_write_u32(b,0) //placeholder for key ptr
+
+
+//add audio blob
+    if (file_exists(audiopath)) {
+        snd_position=buffer_get_pos(b) buffer_set_pos(b,snd_ptr_position)
+        buffer_write_u32(b,snd_position) buffer_set_pos(b,snd_position)
+
+        buffer_write_string(b,"[SND]")
+
+        buffer_write_string(b,string_upper(filename_ext(audiopath)))
+
+        buffer_load(b2,audiopath)
+        len=buffer_get_size(b2)
+        buffer_write_u32(b,len)
+        buffer_copy(b,b2)
+        file_delete(audiopath)
+    }
+
 
 //write frames
-keyframes=0
-firstframe=true
-i=0 repeat (count) {
-    if (keyboard_check_direct(vk_escape)) {
-        status.str="Operation cancelled."
-        if (surface_exists(su)) surface_free(su) su=-1
-        if (surface_exists(render)) surface_free(render) render=-1
-        repeat (count-i) {
-            file_delete(ds_list_find_value(list,i))
-        i+=1}
-        buffer_destroy(b)
-        buffer_destroy(b2)
-        encoding=false
-        exit
-    }
-    //load a frame
-    fn=ds_list_find_value(list,i)
-    bg=background_add(fn,0,0)
+    mov_position=buffer_get_pos(b) buffer_set_pos(b,mov_ptr_position)
+    buffer_write_u32(b,mov_position) buffer_set_pos(b,mov_position)
 
-    //initialize surface(s)
-    if (!surface_exists(su)) {
-        if (su!=-1) show_message("Warning: surface was lost during encode!##This might result in video artifacts.")
-        su=surface_create(w,h)
-    }
-    if (!surface_exists(render)) {
-        if (render!=-1) show_message("Warning: surface was lost during encode!##This might result in video artifacts.")
-        render=surface_create(w,h)
-        surface_set_target(render)
+    buffer_write_string(b,"[MOV]")
+
+    keyframes=0
+    firstframe=true
+    i=0 repeat (count) {
+        if (keyboard_check_direct(vk_escape)) {
+            status.str="Operation cancelled."
+            if (surface_exists(su)) surface_free(su) su=-1
+            if (surface_exists(render)) surface_free(render) render=-1
+            repeat (count-i) {
+                file_delete(ds_list_find_value(list,i))
+            i+=1}
+            buffer_destroy(b)
+            buffer_destroy(b2)
+            encoding=false
+            exit
+        }
+        //load a frame
+        fn=ds_list_find_value(list,i)
+        bg=background_add(fn,0,0)
+
+        //initialize surface(s)
+        if (!surface_exists(su)) {
+            if (su!=-1) show_message("Warning: surface was lost during encode!##This might result in video artifacts.")
+            su=surface_create(w,h)
+        }
+        if (!surface_exists(render)) {
+            if (render!=-1) show_message("Warning: surface was lost during encode!##This might result in video artifacts.")
+            render=surface_create(w,h)
+            surface_set_target(render)
+            draw_background(bg,0,0)
+            surface_reset_target()
+        }
+
+        //prepare frame
+        iskeyframe=false
+        if (interval) if (!(i mod interval)) iskeyframe=true
+        if (firstframe) iskeyframe=true
+        firstframe=false
+        shader_pixel_set(global.encodeshader)
+        texture_set_stage("rPrevious",surface_get_texture(render))
+        if (iskeyframe) {
+            shader_pixel_uniform_f("tolerance",-1)
+            keyframe[keyframes]=buffer_get_pos(b)
+            keyframe_frame[keyframes]=i
+            keyframes+=1
+        } else {
+            shader_pixel_uniform_f("tolerance",delta/256)
+        }
+
+        //render frame data
+        surface_set_target(su)
+        draw_clear_alpha(0,0)
         draw_background(bg,0,0)
-        surface_reset_target()
-    }
+        shader_reset()
 
-    //prepare frame
-    iskeyframe=false
-    if (interval) if (!(i mod interval)) iskeyframe=true
-    if (firstframe) iskeyframe=true
-    firstframe=false
-    shader_pixel_set(global.encodeshader)
-    texture_set_stage("rPrevious",surface_get_texture(render))
-    if (iskeyframe) {
+        //update render image
+        surface_set_target(render)
         shader_pixel_uniform_f("tolerance",-1)
-        keyframe[keyframes]=buffer_get_pos(b) keyframes+=1
-    } else {
-        shader_pixel_uniform_f("tolerance",delta/256)
+        draw_surface(su,0,0)
+
+        //encode frame
+        buffer_get_surface(b2,su)
+        buffer_deflate(b2)
+        buffer_write_u32(b,buffer_get_size(b2))
+        buffer_copy(b,b2)
+
+        //finalize
+        background_delete(bg)
+        file_delete(fn)
+        surface_reset_target()
+
+        //update window
+        status.str="Encoding: "+string(round(i/count*100))+"%" set_application_title(status.str) screen_redraw() io_handle()
+    i+=1}
+
+
+//keyframes
+    if (interval) {
+        key_position=buffer_get_pos(b) buffer_set_pos(b,key_ptr_position)
+        buffer_write_u32(b,key_position) buffer_set_pos(b,key_position)
+
+        buffer_write_string(b,"[KEY]")
+
+        buffer_write_u32(b,keyframes) //num entries
+
+        i=0 repeat (keyframes) {
+            buffer_write_u32(b,keyframe[i]) //ptr
+            buffer_write_u32(b,keyframe_frame[i]) //frame
+        i+=1}
     }
-
-    //render frame data
-    surface_set_target(su)
-    draw_clear_alpha(0,0)
-    draw_background(bg,0,0)
-    shader_reset()
-
-    //update render image
-    surface_set_target(render)
-    shader_pixel_uniform_f("tolerance",-1)
-    draw_surface(su,0,0)
-
-    //encode frame
-    buffer_get_surface(b2,su)
-    buffer_deflate(b2)
-    buffer_write_u32(b,buffer_get_size(b2))
-    buffer_copy(b,b2)
-
-    //finalize
-    background_delete(bg)
-    file_delete(fn)
-    surface_reset_target()
-
-    //update window
-    status.str="Encoding: "+string(round(i/count*100))+"%" set_application_title(status.str) screen_redraw() io_handle()
-i+=1}
-
-buffer_write_u32(b,keyframes)
-
-i=0 repeat (keyframes) {
-    buffer_write_u32(b,keyframe[i])
-i+=1}
 
 //save video file
-buffer_save(b,output)
-encoded=true
+    buffer_save(b,output)
+    encoded=true
 
-status.str="Finished! Size: "+string(buffer_get_size(b)/1024/1024)+" MB"
-with (Previewer) event_user(0)
-set_application_title("Video Encoder")
+    status.str="Finished! Size: "+string(buffer_get_size(b)/1024/1024)+" MB"
+    with (Previewer) event_user(0)
+    set_application_title("Video Encoder")
 
 //cleanup
-buffer_destroy(b)
-buffer_destroy(b2)
-if (surface_exists(su)) surface_free(su) su=-1
-if (surface_exists(render)) surface_free(render) render=-1
-shader_reset()
-encoding=false
+    buffer_destroy(b)
+    buffer_destroy(b2)
+    if (surface_exists(su)) surface_free(su) su=-1
+    if (surface_exists(render)) surface_free(render) render=-1
+    shader_reset()
+    encoding=false
