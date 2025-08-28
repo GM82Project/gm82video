@@ -42,7 +42,7 @@
             global.__gm82video_func_add=code_compile("
                 var __i,__file;
                 __i=0 do {__file=temp_directory+'\'+filename_name(argument[0])+string(__i)+'.mp3' __i+=1} until (!file_exists(__file))            
-                buffer_save(argument0,__file) code_return(sound_add(__file,3,1))
+                buffer_save(argument0,__file) code_return(sound_add(__file,3,1)) file_delete(__file)
             ")
             global.__gm82video_func_play=code_compile("code_return(sound_play(argument0))")
             global.__gm82video_func_stop=code_compile("sound_stop(argument0)")
@@ -531,7 +531,6 @@
         }
         buffer_destroy(__gm82video_buffer)
         buffer_destroy(__gm82video_framebuffer)
-        file_delete(__gm82video_audiofile)
         surface_forget("__gm82video_surface"+string(id))
         surface_forget("__gm82video_surface1"+string(id))
         surface_forget("__gm82video_surface2"+string(id))
